@@ -5,7 +5,7 @@ Xrak 是一个基于 Next.js 和 Flask 的实时通信网站，支持用户间�
 ## 技术栈概览
 
 - **前端**：Next.js 15, React 19, Socket.io-client
-- **后端**：Flask, Flask-SocketIO
+- **后端**：FastApi
 - **样式**：Tailwind CSS, Styled-components
 - **开发工具**：TypeScript, ESLint, Sass
 
@@ -14,10 +14,12 @@ Xrak 是一个基于 Next.js 和 Flask 的实时通信网站，支持用户间�
 ### 后端依赖
 ```bash
 # backend/requirements.txt
-Flask==2.3.3
-Flask-SocketIO==5.3.6
-python-socketio==5.11.2
+fastapi==0.111.0
+uvicorn==0.30.1
+python-multipart==0.0.9
+socketio==5.11.2
 python-engineio==4.8.2
+pydantic-settings==2.3.0
 ```
 
 ### 前端依赖
@@ -46,6 +48,11 @@ npm install
 3. 启动开发服务器
 ```bash
 npm run dev
+```
+
+4. 部署服务器
+```bash
+npm run build
 ```
 
 ### 后端设置
