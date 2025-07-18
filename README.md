@@ -2,7 +2,7 @@
 
 ## 快速开始
 
-1. 安装依赖
+1. 安装依赖（在forntend中）
 ```bash
 npm install
 ```
