@@ -7,7 +7,7 @@ Xrak 是一个基于 Next.js 和 FastAPI 的实时通信网站，支持用户间
 - **前端**：Next.js 15, React 19, Socket.io-client
 - **后端**：FastApi
 - **样式**：Tailwind CSS, Styled-components
-- **开发工具**：TypeScript, ESLint, Sass
+- **开发工具**：TypeScript, ESLint, Sass，Gsap
 
 ## 开发依赖库
 
