@@ -1,6 +1,6 @@
 # Xrak
 
-Xrak 是一个基于 Next.js 和 Flask 的实时通信网站，支持用户间的即时消息传递。
+Xrak 是一个基于 Next.js 和 FastAPI 的实时通信网站，支持用户间的即时消息传递。
 
 ## 技术栈概览
 
