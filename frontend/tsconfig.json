@@ -26,6 +26,10 @@
       "utils/*": ["./src/utils/*"],
     }
   },
+  "files": [
+    "node_modules/gsap/types/index.d.ts"
+  ],
+
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
