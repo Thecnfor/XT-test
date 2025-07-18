@@ -1,0 +1,23 @@
+# 代码库负责人配置
+# 格式: <文件路径> <GitHub 用户名1> <GitHub 用户名2> ...
+
+# 根目录文件由团队领导负责
+* @Thecnfor @wangjuncheng520
+
+# 后端代码由后端团队负责
+/backend/ @backend-dev1 @backend-dev2
+
+# 前端代码由前端团队负责
+/frontend/ @frontend-dev1 @frontend-dev2
+
+# 文档由技术文档团队负责
+/README.md @doc-writer
+/frontend/README.md @doc-writer
+
+# 配置文件由架构师负责
+/.gitignore @architect
+/.gitattributes @architect
+/frontend/eslint.config.mjs @architect
+/frontend/next.config.ts @architect
+/frontend/postcss.config.mjs @architect
+/frontend/tsconfig.json @architect
