@@ -29,7 +29,7 @@ pip install -r requirements.txt
 ### 2. 运行应用
 
 ```bash
-# 直接运行
+# 直接运行（测试方法）
 python main.py
 ```
 

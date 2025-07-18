@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Xrak",
-  description: "Xrak 是一个基于 Next.js 的项目",
+  description: "Xrak 是一个基于 Next.js 的综合项目",
 };
 
 export default function RootLayout({
