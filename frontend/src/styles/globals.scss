@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@forward 'mixins' as mix-*;
-@forward 'variables' as var-*;
 @tailwind utilities;
 
 html, body {
