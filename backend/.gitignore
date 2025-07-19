@@ -1,6 +1,6 @@
 # Python虚拟环境
-#venv/
-#.env
+venv/
+.env
 
 # 编译文件
 __pycache__/
