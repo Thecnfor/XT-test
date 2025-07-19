@@ -1,12 +1,40 @@
-import "@/styles/components/header.scss"
+'use client'
+import { useState, useEffect } from 'react';
+import "@/styles/components/header.scss";
+
+export default function Header() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 1);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
 
-export default function Header(){
-    return(
-        <>
+  const headerClasses = isScrolled ? 'header-fixed' : '';
+
+  return (
+    <div className={`header ${headerClasses}`}>
+      <header>
+        <div className='header-logo'>
+            Xrak
+        </div>
+        <div className='header-nav'>
             <div>
-                XT
+                首页
             </div>
-        </>
-    )
+            <div>
+                项目
+            </div>
+        </div>
+        <div className='header-btn'>
+            联系我
+        </div>
+      </header>
+    </div>
+  );
 }

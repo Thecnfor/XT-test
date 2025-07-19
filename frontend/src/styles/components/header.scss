@@ -1,1 +1,34 @@
 @use "../globals.scss" as *;
+
+.header {
+    height: 64px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @each $item in $var-header {
+        .header#{$item} {
+            display: flex;
+            background-color: red;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+    header{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        transition: all 0.1s ease-in;
+    }
+    &-fixed{
+        header{
+            width: 80%;
+            border-radius: 20px;
+        }
+    }
+}
