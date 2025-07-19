@@ -2,16 +2,14 @@ import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
-# 模拟数据库（实际应用中需使用真实数据库）1
+# 模拟数据库（实际应用中需使用真实数据库）
 DATABASE_FILE = "users.txt"
 
-
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-
     def _set_headers(self, status_code=200):
         self.send_response(status_code)
         self.send_header("Content-type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")  # 允许所有跨域请求
+        self.send_header("Access-Control-Allow-Origin", "*")  # 允许所有跨域
         self.end_headers()
 
     def do_OPTIONS(self):
@@ -27,8 +25,8 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
 
         try:
-            # 解析 JSON 数据
-            data = json.loads(post_data.decode("utf-8"))
+            # 解析JSON数据
+            data = json.loads(post_data.decode('utf-8'))
             username = data.get("username")
             password = data.get("password")
 
@@ -39,7 +37,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
             # 检查用户是否存在
             if self._user_exists(username):
-                self._set_headers(409)
+                self._set_headers(400)
                 self.wfile.write(json.dumps({"error": "用户名已存在"}).encode())
                 return
 
@@ -47,10 +45,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self._save_user(username, password)
             self._set_headers(201)
             self.wfile.write(json.dumps({"message": "用户注册成功", "user": username}).encode())
-
         except json.JSONDecodeError:
             self._set_headers(400)
             self.wfile.write(json.dumps({"error": "无效的JSON格式"}).encode())
+
+    def do_GET(self):
+        print("进入DO_GET方法")
+        self._set_headers(200)
+        response_message = {
+            "message": "这是GET请求的响应，你可以根据需求自定义内容"
+        }
+        self.wfile.write(json.dumps(response_message).encode())
 
     def _user_exists(self, username):
         try:
