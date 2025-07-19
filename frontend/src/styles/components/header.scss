@@ -8,26 +8,42 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    @each $item in $var-header {
+    @each $item in $header {
         .header#{$item} {
-            display: flex;
-            background-color: red;
-            align-items: center;
-            justify-content: center;
+            @include flex();
+            margin-left: $spacing;
+            margin-right: $spacing;
         }
     }
     header{
         width: 100%;
+        max-width: $max-width;
         height: 100%;
         margin: 0;
         display: flex;
         justify-content: space-between;
         align-items: stretch;
-        transition: all 0.1s ease-in;
+        @media screen {
+            .header-container{
+                @include flex();
+            }
+            ul{
+                @include flex();
+                li{
+                    margin-left: $spacing;
+                    margin-right: $spacing;
+                }
+            }
+            @media (max-width: 576px) {
+                .header-nav{
+                    display: none;
+                }
+            }
+        }
     }
     &-fixed{
         header{
-            width: 80%;
+            width: $min-width;
             border-radius: 20px;
         }
     }

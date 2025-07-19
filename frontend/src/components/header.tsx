@@ -1,13 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react';
 import "@/styles/components/header.scss";
+import Checkbox from '@/components/uiverse/btnMenu';
+import Text from '@/components/self/textUnderline';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 1);
+      setIsScrolled(window.scrollY > 50);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -20,19 +22,26 @@ export default function Header() {
   return (
     <div className={`header ${headerClasses}`}>
       <header>
-        <div className='header-logo'>
-            Xrak
-        </div>
-        <div className='header-nav'>
-            <div>
-                首页
+        <div className='header-container'>
+          <div className='header-logo'>
+                      Xrak
             </div>
-            <div>
-                项目
-            </div>
+              <div className='header-nav'>
+                <ul>
+                  <li>
+                    <Text text="首页" />
+                  </li>
+                  <li>
+                    <Text text="项目" />
+                  </li>
+                  <li>
+                    <Text text="联系" />
+                  </li>
+                </ul>
+              </div>
         </div>
         <div className='header-btn'>
-            联系我
+          <Checkbox />
         </div>
       </header>
     </div>

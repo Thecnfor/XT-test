@@ -1,11 +1,18 @@
-@forward 'mixins' as mix-*;
-@forward 'variables' as var-*;
+@forward 'mixins';
+@forward 'variables';
 @use "tailwindcss" as *;
 
-.html,.body{
+html,body{
     background-color: black;
 }
 
 *{
-    color: white;
+    color: rgb(255, 255, 255);
+    list-style-type: none;
+    ::selection{
+        background-color: rgb(132, 121, 8);
+        opacity: 0.8;
+    }
+    transition: all .3s ease-in-out;
+    flex-wrap: hidden;
 }
