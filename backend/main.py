@@ -1,5 +1,6 @@
 import asyncio
 import websockets
+import server
 
 # 处理客户端连接的异步函数
 async def echo(websocket, path):

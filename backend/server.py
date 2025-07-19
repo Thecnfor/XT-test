@@ -2,7 +2,7 @@ import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
-# 模拟数据库（实际应用中需使用真实数据库）
+# 模拟数据库（实际应用中需使用真实数据库）1
 DATABASE_FILE = "users.txt"
 
 
