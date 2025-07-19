@@ -1,9 +1,0 @@
-@import "tailwindcss";
-@tailwind utilities;
-
-html, body {
-    position: relative;
-    width: 100%;
-    height: fit-content;
-    min-height: 100 dvh;
-}

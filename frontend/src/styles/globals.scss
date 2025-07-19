@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@forward 'mixins' as mix-*;
+@forward 'variables' as var-*;
+@tailwind utilities;
+
+html, body {
+    background-color: rgb(162, 200, 234);
+}
