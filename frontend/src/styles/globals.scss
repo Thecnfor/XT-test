@@ -7,12 +7,16 @@ html,body{
 }
 
 *{
-    color: rgb(255, 255, 255);
+    color: white;
     list-style-type: none;
     ::selection{
-        background-color: rgb(132, 121, 8);
+        background-color: rgb(235, 255, 161);
         opacity: 0.8;
     }
-    transition: all .3s ease-in-out;
+    transition: all .6s cubic-bezier(.19,1,.22,1);
     flex-wrap: hidden;
+}
+@font-face {
+    font-family: 'logo';
+    src: url('../../public/logoChinese.ttf') format('truetype');
 }

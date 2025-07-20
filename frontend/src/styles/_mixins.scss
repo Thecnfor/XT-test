@@ -1,8 +1,8 @@
 @use 'variables.scss' as *;
 
-@mixin flex(){
+@mixin flex($item: center,$justify: center){
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: $item;
+    justify-content: $justify;
     width: fit-content;
 }
