@@ -31,7 +31,8 @@ main{
             margin-top: 18dvh;
             @include flex();
             &-marquee{
-                width: 100%;
+                width: 90dvw;
+                margin-top: 6dvh;
             }
         }
         .main-content-desc{
@@ -53,6 +54,10 @@ main{
                     }
                 }
             }
+        }
+        &-tabs{
+            width: 10px;
+            height: 10px;
         }
     }
 }

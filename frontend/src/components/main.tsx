@@ -1,8 +1,21 @@
 'use client'
 import "@/styles/components/mainPage.scss"
 import { TextAnimate } from "@/components/magicui/text-animate";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 
 export default function Main() {
+  const placeholders = [
+    "电脑怎么用？",
+    "Excel怎么快速完成工作？",
+  ];
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("submitted");
+  };
+
   return (
     <main>
       <div className="main">
@@ -18,8 +31,14 @@ export default function Main() {
               </div>
             </div>
             <div className="main-container-marquee">
-
+              <PlaceholdersAndVanishInput
+                placeholders={placeholders}
+                onChange={handleChange}
+                onSubmit={onSubmit}
+              />
             </div>
+        </div>
+        <div className="main-tabs">
         </div>
       </div>
       <div className="content">
