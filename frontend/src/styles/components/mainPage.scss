@@ -1,24 +1,59 @@
 @use "../globals.scss" as *;
 
 main{
-    margin-top: 64px;
+    width: 100%;
     .main{
-        width: 100%;
-        height: 100%;
-        &-container{
-            width: 100%;
-            height: 100%;
-            &-content{
-                width: 100%;
-                height: 100%;
-                &-title{
-                    font-size: 32px;
-                    font-weight: bold;
+        min-width: 100%;
+        height: 100dvh;
+        display: flex;
+        justify-content: center;
+        span{
+            color: $main-color;
+            font-size: 96px;
+            font-family: 微软雅黑;
+            font-weight: 550;
+            cursor: context-menu;
+            @media (max-width: 768px) {
+                &{
+                    font-size: 88px;
                 }
-                &-desc{
-                    font-size: 16px;
+                @media (max-width: 640px) {
+                    &{
+                        font-size: 48px;
+                    }
+                }
+            }
+        }
+        &-container{
+            width: fit-content;
+            height: fit-content;
+            flex-wrap: wrap;
+            margin-top: 18dvh;
+            @include flex();
+            &-marquee{
+                width: 100%;
+            }
+        }
+        .main-content-desc{
+            min-width: 100%;
+            span{
+                color: $text-color;
+                font-size: 22px;
+                font-family: 微软雅黑;
+                font-weight: 550;
+                cursor: context-menu;
+                @media (max-width: 768px) {
+                    &{
+                        font-size: 18px;
+                    }
+                    @media (max-width: 640px) {
+                        &{
+                            font-size: 14px;
+                        }
+                    }
                 }
             }
         }
     }
 }
+
