@@ -1,7 +1,6 @@
 'use client'
 import "@/styles/components/mainPage.scss"
 import React from "react";
-import { cn } from "@/lib/utils";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
@@ -34,8 +33,8 @@ function BentoGridDemo() {
   );
 }
 const Skeleton = () => (
-  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 dark:from-neutral-900 dark:to-neutral-800 to-neutral-100">
-    
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 from-neutral-900 to-neutral-800 to-neutral-100">
+
   </div>
 );
 const items = [
