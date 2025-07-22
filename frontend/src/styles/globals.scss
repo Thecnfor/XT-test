@@ -14,6 +14,16 @@ html,body{
         opacity: 0.8;
     }
     transition: all .6s cubic-bezier(.19,1,.22,1);
+    
+    .no-visible-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .no-visible-scrollbar::-webkit-scrollbar {
+    display: none;
+    }
 }
 @font-face {
     font-family: 'logo';

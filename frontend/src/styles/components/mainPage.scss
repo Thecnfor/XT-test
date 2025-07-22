@@ -4,9 +4,11 @@ main{
     width: 100%;
     .main{
         min-width: 100%;
-        height: 100dvh;
+        min-height: 100dvh;
+        height: fit-content;
         display: flex;
         justify-content: center;
+        flex-wrap: wrap;
         span{
             color: $main-color;
             font-size: 96px;
@@ -31,7 +33,8 @@ main{
             margin-top: 18dvh;
             @include flex();
             &-marquee{
-                width: 100%;
+                width: 90dvw;
+                margin-top: 6dvh;
             }
         }
         .main-content-desc{
@@ -53,6 +56,16 @@ main{
                     }
                 }
             }
+        }
+        &-tabs{
+            width: 100dvw;
+            padding-left: 5dvw;
+            padding-right: 5dvw;
+        }
+    }
+    .content{
+        &-desc{
+            margin: 4dvw;
         }
     }
 }
