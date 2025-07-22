@@ -4,9 +4,11 @@ main{
     width: 100%;
     .main{
         min-width: 100%;
-        height: 100dvh;
+        min-height: 100dvh;
+        height: fit-content;
         display: flex;
         justify-content: center;
+        flex-wrap: wrap;
         span{
             color: $main-color;
             font-size: 96px;
@@ -56,8 +58,14 @@ main{
             }
         }
         &-tabs{
-            width: 10px;
-            height: 10px;
+            width: 100dvw;
+            padding-left: 5dvw;
+            padding-right: 5dvw;
+        }
+    }
+    .content{
+        &-desc{
+            margin: 4dvw;
         }
     }
 }
