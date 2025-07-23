@@ -117,7 +117,7 @@ const data = [
   },
     {
     category: "快速开始",
-    title: "任何不懂得技术",
+    title: "新手入门",
     content: <DummyContent />,
   },
     {

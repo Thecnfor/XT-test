@@ -12,15 +12,13 @@ async def echo(request):
     async for msg in ws:
         if msg.type == web.WSMsgType.TEXT:
             await ws.send_str(msg.data)
-            # 发送 HTTP 请求到 server.py
+            # 发送 HTTP 请求到 server# .py
             await send_http_request(msg.data)
         elif msg.type == web.WSMsgType.ERROR:
             print('ws connection closed with exception %s' % ws.exception())
 
     print('websocket connection closed')
     return ws
-
-
 # 异步启动 WebSocket 服务器的函数
 async def start_server():
     app = web.Application()

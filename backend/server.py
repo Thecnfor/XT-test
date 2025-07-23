@@ -1,83 +1,51 @@
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
 
-# 模拟数据库（实际应用中需使用真实数据库）
-DATABASE_FILE = "users.txt"
+# 模拟对话逻辑（实际可对接 AI 接口，这里先写死回复）
+def handle_dialogue(request_data):
+    user_input = request_data.get("message", "Hello")
+    # 简单模拟回复，实际可替换成调用 AI 接口（如 OpenAI）
+    return {
+        "reply": f"你说：{user_input}，这是后端模拟的回复～"
+    }
 
-class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
-    def _set_headers(self, status_code=200):
-        self.send_response(status_code)
-        self.send_header("Content-type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")  # 允许所有跨域
-        self.end_headers()
-
-    def do_OPTIONS(self):
-        # 处理预检请求
-        self.send_response(200)
+class MyHandler(BaseHTTPRequestHandler):
+    # 解决跨域问题（前端和后端端口不同时需要）
+    def _set_cors_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    # 处理 OPTIONS 请求（预检请求）
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self._set_cors_headers()
         self.end_headers()
 
+    # 处理 POST 请求（前端发对话内容到这里）
     def do_POST(self):
-        content_length = int(self.headers["Content-Length"])
-        post_data = self.rfile.read(content_length)
+        if self.path == "/dialogue":
+            # 1. 解析前端发的 JSON 数据
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length).decode("utf-8")
+            request_data = json.loads(post_data)
 
-        try:
-            # 解析JSON数据
-            data = json.loads(post_data.decode('utf-8'))
-            username = data.get("username")
-            password = data.get("password")
+            # 2. 处理对话逻辑
+            response_data = handle_dialogue(request_data)
 
-            if not username or not password:
-                self._set_headers(400)
-                self.wfile.write(json.dumps({"error": "缺少用户名或密码"}).encode())
-                return
-
-            # 检查用户是否存在
-            if self._user_exists(username):
-                self._set_headers(400)
-                self.wfile.write(json.dumps({"error": "用户名已存在"}).encode())
-                return
-
-            # 保存用户信息
-            self._save_user(username, password)
-            self._set_headers(201)
-            self.wfile.write(json.dumps({"message": "用户注册成功", "user": username}).encode())
-        except json.JSONDecodeError:
-            self._set_headers(400)
-            self.wfile.write(json.dumps({"error": "无效的JSON格式"}).encode())
-
-    def do_GET(self):
-        print("进入DO_GET方法")
-        self._set_headers(200)
-        response_message = {
-            "message": "这是GET请求的响应，你可以根据需求自定义内容"
-        }
-        self.wfile.write(json.dumps(response_message).encode())
-
-    def _user_exists(self, username):
-        try:
-            with open(DATABASE_FILE, "r") as f:
-                for line in f:
-                    if line.startswith(username + ":"):
-                        return True
-            return False
-        except FileNotFoundError:
-            return False
-
-    def _save_user(self, username, password):
-        with open(DATABASE_FILE, "a") as f:
-            f.write(f"{username}:{password}\n")
-
-
-def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler, port=8000):
-    server_address = ("", port)
-    httpd = server_class(server_address, handler_class)
-    print(f"服务器运行在 http://localhost:{port}")
-    httpd.serve_forever()
-
+            # 3. 返回响应
+            self.send_response(200)
+            self._set_cors_headers()
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(response_data).encode("utf-8"))
+        else:
+            self.send_response(404)
+            self.end_headers()
 
 if __name__ == "__main__":
-    run()
+    # 启动服务，端口 8000（可修改，注意和前端保持一致）
+    server_address = ("", 8000)
+    httpd = HTTPServer(server_address, MyHandler)
+    print("后端服务启动：http://localhost:8000")
+    httpd.serve_forever()
