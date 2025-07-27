@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后端通信测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #httpResponse, #wsMessages {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .status {
+            padding: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>后端通信测试</h1>
+    <div class="container">
+        <!-- HTTP测试部分 -->
+        <div class="section">
+            <h2>HTTP请求测试</h2>
+            <div>
+                <label for="httpMessage">消息内容:</label>
+                <input type="text" id="httpMessage" placeholder="输入要发送的消息" value="测试HTTP请求">
+                <button onclick="sendHttpRequest()">发送HTTP请求</button>
+            </div>
+            <div>
+                <h3>响应结果:</h3>
+                <pre id="httpResponse">等待响应...</pre>
+            </div>
+        </div>
+
+        <!-- WebSocket测试部分 -->
+        <div class="section">
+            <h2>WebSocket测试</h2>
+            <div>
+                <span id="wsStatus" class="status disconnected">未连接</span>
+                <button onclick="connectWebSocket()">连接WebSocket</button>
+                <button onclick="disconnectWebSocket()">断开连接</button>
+            </div>
+            <div>
+                <label for="wsMessage">消息内容:</label>
+                <input type="text" id="wsMessage" placeholder="输入要发送的消息" value="测试WebSocket消息">
+                <button onclick="sendWebSocketMessage()">发送消息</button>
+            </div>
+            <div>
+                <h3>消息记录:</h3>
+                <pre id="wsMessages">等待消息...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket相关变量
+        let socket = null;
+        const wsStatusElement = document.getElementById('wsStatus');
+        const wsMessagesElement = document.getElementById('wsMessages');
+
+        // 发送HTTP请求
+        function sendHttpRequest() {
+            const messageInput = document.getElementById('httpMessage');
+            const responseElement = document.getElementById('httpResponse');
+            const message = messageInput.value;
+
+            if (!message) {
+                alert('请输入消息内容');
+                return;
+            }
+
+            responseElement.textContent = '发送中...';
+
+            fetch('http://localhost:8000/dialogue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态码: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                responseElement.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                responseElement.textContent = `请求失败: ${error.message}`;
+            });
+        }
+
+        // 连接WebSocket
+        function connectWebSocket() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                alert('已经连接到WebSocket');
+                return;
+            }
+
+            // 创建WebSocket连接
+            socket = new WebSocket('ws://localhost:8000/ws');
+
+            // 连接建立时触发
+            socket.onopen = function() {
+                wsStatusElement.textContent = '已连接';
+                wsStatusElement.className = 'status connected';
+                wsMessagesElement.textContent += '\n[系统] 已连接到WebSocket服务器';
+            };
+
+            // 收到消息时触发
+            socket.onmessage = function(event) {
+                wsMessagesElement.textContent += '\n[收到] ' + event.data;
+                wsMessagesElement.scrollTop = wsMessagesElement.scrollHeight;
+            };
+
+            // 连接关闭时触发
+            socket.onclose = function() {
+                wsStatusElement.textContent = '未连接';
+                wsStatusElement.className = 'status disconnected';
+                wsMessagesElement.textContent += '\n[系统] WebSocket连接已关闭';
+            };
+
+            // 连接出错时触发
+            socket.onerror = function(error) {
+                wsMessagesElement.textContent += '\n[错误] ' + error.message;
+                wsStatusElement.textContent = '连接错误';
+                wsStatusElement.className = 'status disconnected';
+            };
+        }
+
+        // 断开WebSocket连接
+        function disconnectWebSocket() {
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+        }
+
+        // 发送WebSocket消息
+        function sendWebSocketMessage() {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                alert('请先连接到WebSocket');
+                return;
+            }
+
+            const messageInput = document.getElementById('wsMessage');
+            const message = messageInput.value;
+
+            if (!message) {
+                alert('请输入消息内容');
+                return;
+            }
+
+            socket.send(message);
+            wsMessagesElement.textContent += '\n[发送] ' + message;
+            wsMessagesElement.scrollTop = wsMessagesElement.scrollHeight;
+            messageInput.value = '';
+        }
+    </script>
+</body>
+</html>

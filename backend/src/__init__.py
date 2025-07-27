@@ -1,5 +1,6 @@
 # 初始化包
 from .config import config
-from .server import RequestHandler, MyHandler, handle_dialogue
-from .user import hello
-from .main import start_server, send_http_request
+from .app import create_app
+from .api.handlers import handle_dialogue, websocket_handler
+from .services.dialogue_service import DialogueService
+from .utils.http_utils import HttpUtils
