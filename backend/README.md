@@ -1,64 +1,65 @@
-# Xrak 后端 (FastAPI)
-
-这是Xrak实时通信应用的后端部分，使用FastAPI和Socket.IO构建。
-
-## 技术栈
-- FastAPI: 高性能的Python Web框架
-- Uvicorn: ASGI服务器
-- Socket.IO: 实时通信
-- Pydantic: 数据验证和设置管理
-
-## 快速开始
-
-### 1. 安装依赖
-
-```bash
-# 创建虚拟环境
-python -m venv venv
-
-# 激活虚拟环境
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
-
-# 安装依赖
-pip install -r requirements.txt
-```
-
-### 2. 运行应用
-
-```bash
-# 直接运行（测试方法）
-python main.py
-```
-
-### 3. 访问应用
-
-打开浏览器，访问 http://localhost:5000
+# 后端服务说明
 
 ## 项目结构
+
 ```
 backend/
 ├── .gitignore
-├── main.py           # 应用入口
-├── README.md         # 项目说明
-├── requirements.txt  # 依赖列表
-├── start.bat         # Windows启动脚本
-
+├── .venv/
+├── README.md
+├── pyproject.toml
+├── requirements.txt
+├── src/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── main.py
+│   ├── server.py
+│   └── user.py
+├── tests/
+├── docs/    这里放用户数据了
+└── scripts/
 ```
 
-## 功能
-- 实时消息通信
-- 客户端连接/断开事件处理
-- 消息广播给所有客户端
+## 功能说明
 
-## 配置
-可以通过修改`main.py`文件或设置环境变量来配置应用。
+- `src/config.py`: 配置文件，加载环境变量
+- `src/main.py`: WebSocket 服务器实现
+- `src/server.py`: HTTP 服务器实现
+- `src/user.py`: WebSocket 客户端示例
 
-## 部署
-### 生产环境
+## 环境要求
+
+- Python 3.8+
+- 依赖包见 `requirements.txt`
+
+## 运行方法
+
+1. 安装依赖
 ```bash
-# 使用Gunicorn作为ASGI服务器
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
+pip install -r requirements.txt
 ```
+
+2. 启动 HTTP 服务器
+```bash
+python -m src.server
+```
+
+3. 启动 WebSocket 服务器
+```bash
+python -m src.main
+```
+
+4. 运行 WebSocket 客户端示例
+```bash
+python -m src.user
+```
+
+## 配置说明
+
+配置项在 `.env` 文件中设置，支持以下配置：
+
+- `HTTP_PORT`: HTTP 服务器端口，默认 8000
+- `WS_PORT`: WebSocket 服务器端口，默认 8765
+- `DEBUG`: 是否开启调试模式，默认 False
+- `API_TIMEOUT`: API 请求超时时间，默认 30 秒
+- `MAX_RETRIES`: API 最大重试次数，默认 3 次

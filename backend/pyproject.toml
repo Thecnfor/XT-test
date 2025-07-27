@@ -1,0 +1,27 @@
+[project]
+name = "xt-backend"
+version = "0.1.0"
+description = "XT Test Backend Service"
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
+requires-python = ">=3.8"
+dependencies = [
+  "aiohttp==3.9.5",
+  "websockets==12.0",
+  "requests==2.31.0",
+  "python-dotenv==1.0.1",
+  "pydantic-settings==2.3.0",
+  "python-socketio==5.11.2",
+  "python-engineio==4.8.2"
+]
+py_modules = ["config", "get_txt", "main", "server", "user"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py_modules = ["config", "get_txt", "main", "server", "user"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
