@@ -33,6 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <NavProvider>
         <Header />
         <main>
             <nav>
@@ -51,6 +52,7 @@ export default function RootLayout({
             {children}
           </article>
         </main>
+      </NavProvider>
       </body>
     </html>
   );
