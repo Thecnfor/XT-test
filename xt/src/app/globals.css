@@ -6,7 +6,7 @@ html, body {
   color: var(--text-color);
 }
 *{
-  transition: all 0.3s cubic-bezier(.22,1,.36,1);
+  transition: all 0.4s cubic-bezier(.22,1,.36,1);
   ::selection{
     background-color: var(--text-color);
     color: var(--bg-color);

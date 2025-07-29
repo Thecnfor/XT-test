@@ -17,8 +17,14 @@ header{
     padding-right: $space;
     z-index: 100;
     .header-logo{
-        display: flex;
-        align-items: baseline;
+        a{
+            padding-top: 4px;
+            display: flex;
+            align-items: baseline;
+            cursor: pointer;
+            width: fit-content;
+            flex-wrap: nowrap;
+        }
         div{
             font: 24px sans-serif;
             font-weight: 500;
@@ -51,11 +57,11 @@ main{
         padding-top: 10rem;
         left: 0;
         z-index: 50;
-        transition: all 0.3s cubic-bezier(.22,1,.36,1);
+        transition: all 0.8s cubic-bezier(.22,1,.36,1);
         @media (max-width: $md-width) {
             left: -80dvw;
             width: 80dvw;
-            transition: all 0.3s cubic-bezier(.22,1,.36,1);
+            transition: all 0.8s cubic-bezier(.22,1,.36,1);
         }
         ul{
             li{
@@ -68,10 +74,10 @@ main{
                 font: 14px sans-serif;
                 font-weight: 540;
                 cursor: pointer;
-                transition: all 0.3s cubic-bezier(.22,1,.36,1);
+                transition: all 0.8s cubic-bezier(.22,1,.36,1);
                 &:hover{
                     background-color: rgba(var(--rgb-color), 0.1);
-                    transition: all 0.3s cubic-bezier(.22,1,.36,1);
+                    transition: all 0.8s cubic-bezier(.22,1,.36,1);
                     div{
                         svg{
                             opacity: 1;
@@ -96,16 +102,16 @@ main{
         position: absolute;
         width: calc(100dvw - 200px);
         left: 200px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         height: 60dvh;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s cubic-bezier(.22,1,.36,1);
+        transition: all 0.8s cubic-bezier(.22,1,.36,1);
         @media (max-width: $md-width) {
             width: 100%;
-            transition: all 0.3s cubic-bezier(.22,1,.36,1);
+            transition: all 0.8s cubic-bezier(.22,1,.36,1);
             left: 0;
         }
         .container{
@@ -153,12 +159,13 @@ main{
                 }
                 button{
                     position: absolute;
-                    bottom: 10px;
-                    right: 15px;
-                    width: fit-content;
+                    bottom: 14px;
+                    right: 14px;
+                    width: 36px;
+                    height: 36px;
                     cursor: pointer;
                     background-color: rgba(var(--rgb-color), 0.1);
-                    border-radius: 50%;
+                    border-radius: 25px;
                     svg{
                         color: rgba(var(--rgb-color), 0.5);
                         &:hover{

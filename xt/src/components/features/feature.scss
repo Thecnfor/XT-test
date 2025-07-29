@@ -13,10 +13,38 @@
             fill: var(--text-color);
         }
     }
-    position: absolute;
-    top: 24px;
+    position: fixed;
+    top: 27px;
     left: 154px;
+    z-index: 100;
+    cursor: pointer;
     @media (max-width: $md-width) {
         display: none;
+    }
+}
+
+.navSwitch{
+    left: -200px;
+}
+
+.highlight{
+    width: 100dvw;
+    left: 0;
+}
+
+.admin-button{
+    a{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 2.5rem;
+        border-radius: 15px;
+        margin-right: 25px;
+        color: var(--text-color);
+        cursor: pointer;
+        &:hover{
+            background-color: var(--hover-color);
+        }
     }
 }

@@ -13,7 +13,7 @@ $primary-color-light: #6200ea;
   --text-color: #{$text-color-light};
   --primary-color: #{$primary-color-light};
   --rgb-color: 155, 155, 155;
-  --hover-color: rgba(155, 155, 155, 0.1);
+  --hover-color: rgba(155, 155, 155, 0.15);
 }
 
 @media (prefers-color-scheme: dark) {

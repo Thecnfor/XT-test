@@ -1,16 +1,17 @@
 'use client'
 
+import Link from "next/link";
 import CheckNav from "@/components/universe/checkNav";
 import AdminButton from "@/components/features/admin";
-import SwitchNav from "@/components/features/switchNav";
 
 export default function Header() {
 
   return (
     <header>
         <div className="header-logo">
-          <div>电脑行</div><span>.XT</span>
-          <SwitchNav />
+          <Link href="/">
+            <div>电脑行</div><span>.XT</span>
+          </Link>
         </div>
         <nav>
             <AdminButton />
