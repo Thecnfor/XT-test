@@ -1,4 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# XT Next.js Project
+
+This project is structured according to Next.js best practices.
+
+## Project Structure
+
+- `app/`: Contains the main application code.
+- `components/`: Contains reusable UI components.
+  - `ui/`: Contains basic UI components.
+  - `features/`: Contains feature-specific components.
+- `hooks/`: Contains custom hooks.
+- `lib/`: Contains utility functions.
+- `services/`: Contains API services.
+- `store/`: Contains global state management.
+- `styles/`: Contains global styles.
+- `types/`: Contains TypeScript types.
+- `utils/`: Contains utility functions.
+
+## Key Features
+
+- Modular layout with Providers component for global state management.
+- Custom hook for font loading.
+- TypeScript support.
 
 ## Getting Started
 

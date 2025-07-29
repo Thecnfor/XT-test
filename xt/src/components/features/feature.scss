@@ -1,0 +1,22 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.switch{
+    .isActive{
+        display: none;
+    }
+    path{
+        fill: rgba(var(--rgb-color), 0.5);
+    }
+    &:hover{
+        path{
+            fill: var(--text-color);
+        }
+    }
+    position: absolute;
+    top: 24px;
+    left: 154px;
+    @media (max-width: $md-width) {
+        display: none;
+    }
+}

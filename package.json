@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "windicss-webpack-plugin": "^1.8.0"
+  }
+}

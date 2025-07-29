@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.scss";
+import Link from "next/link";
+import Header from "@/components/layout/header";
+import { NavProvider } from "@/hooks/NavContext";
+
+import "./globals.css";
+import "@/styles/harmony.scss";
+import '@/components/features/feature.scss'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +33,24 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <Header />
+        <main>
+            <nav>
+              <ul>
+                {['首页', '关于', '产品', '联系'].map((item) => (
+                  <li key={item}>
+                  <div>
+                    <Link href={`/${item}`}>{item}</Link>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <article>
+            {children}
+          </article>
+        </main>
       </body>
     </html>
   );

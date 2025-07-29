@@ -1,0 +1,37 @@
+//dark 模式
+$color-background-dark: black;
+$color-text-dark: white;
+$color-primary-dark: #bb86fc;
+
+//light 模式
+$bg-color-light: white;
+$text-color-light: black;
+$primary-color-light: #6200ea;
+
+:root {
+  --bg-color: #{$bg-color-light};
+  --text-color: #{$text-color-light};
+  --primary-color: #{$primary-color-light};
+  --rgb-color: 155, 155, 155;
+  --hover-color: rgba(155, 155, 155, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #{$color-background-dark};
+    --text-color: #{$color-text-dark};
+    --primary-color: #{$color-primary-dark};
+    --rgb-color: 255, 255, 255;
+    --hover-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// 响应式布局
+$sm-width: 640px;
+$md-width: 768px;
+$lg-width: 1024px;
+$xl-width: 1280px;
+$xxl-width: 1536px;
+
+// 间距
+$space: 1.5rem;
