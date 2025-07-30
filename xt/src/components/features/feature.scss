@@ -40,9 +40,9 @@
         width: 4rem;
         height: 2.5rem;
         border-radius: 15px;
-        margin-right: 25px;
         color: var(--text-color);
         cursor: pointer;
+        background-color: rgba(var(--rgb-color), 0.1);
         &:hover{
             background-color: var(--hover-color);
         }
