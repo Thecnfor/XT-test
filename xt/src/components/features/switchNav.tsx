@@ -5,7 +5,9 @@ import clsx from 'clsx';
 import Link from "next/link";
 import { useDispatch } from 'react-redux';
 import { setClass } from '@/store/NavSwitch';
+import navLinks from '@/hooks/docs/links';
 
+// 链接已统一管理到 @/hooks/docs/links.ts 文件中
 export default function SwitchNav() {
   const dispatch = useDispatch();
   const [isActive, setIsActive] = useState(true);
@@ -45,11 +47,11 @@ export default function SwitchNav() {
     </div>
     <nav className={clsx({'navSwitch': !isActive})}>
       <ul>
-          {['首页', '关于', '产品', '联系'].map((item) => (
-            <li key={item}>
+          {Object.entries(navLinks).map(([name, path]) => (
+            <li key={name}>
             <div>
-              <Link href={`/${item}`}>
-              {item}
+              <Link href={path}>
+              {name}
               </Link>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
             </div>

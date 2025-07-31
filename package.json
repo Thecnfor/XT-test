@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@capacitor/cli": "^7.4.2",
+    "@capacitor/core": "^7.4.2",
     "windicss-webpack-plugin": "^1.8.0"
   }
 }
