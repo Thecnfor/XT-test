@@ -28,7 +28,7 @@
 }
 
 .highlight{
-    width: 100dvw;
+    width: 100dvw !important;
     left: 0;
 }
 
@@ -40,11 +40,10 @@
         width: 4rem;
         height: 2.5rem;
         border-radius: 15px;
-        color: var(--text-color);
+        color: var(--bg-color);
         cursor: pointer;
-        background-color: rgba(var(--rgb-color), 0.1);
-        &:hover{
-            background-color: var(--hover-color);
-        }
+        background-color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 600;
     }
 }

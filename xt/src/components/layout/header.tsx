@@ -10,7 +10,7 @@ export default function Header() {
     <header>
         <div className="header-logo">
           <Link href="/">
-            <div>电脑行</div><span>.XT</span>
+            <div>XRAK</div><span>.CO</span>
           </Link>
         </div>
         <nav>

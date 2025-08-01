@@ -22,9 +22,9 @@ const CheckNav = () => {
     </StyledWrapper>
     <StyledShowMore $isVisible={isChecked}>
       <StyledNav>
-        <StyledUl>
+        <StyledUl key={isChecked ? 'checked' : 'unchecked'}>
             {Object.entries(navLinks).map(([name, path], index) => (
-              <StyledLi key={name} $index={index}>
+              <StyledLi key={`${name}-${isChecked}`} $index={index}>
                 <StyledLinkContainer>
                   <StyledLink href={path}>
                     {name}
@@ -43,8 +43,8 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   position: fixed;
   top: 64px;
   left: 0;
-  width: 100vw;
-  height: ${({ $isVisible }) => $isVisible ? '100vh' : '0'};
+  width: 100dvw;
+  height: ${({ $isVisible }) => $isVisible ? 'calc(100svh - 64px)' : '0'};
   @media (prefers-color-scheme: dark) {
     background-color: rgba(0, 0, 0, 0.95);
   }
@@ -57,22 +57,29 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   pointer-events: ${({ $isVisible }) => $isVisible ? 'auto' : 'none'};
   backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  @media (min-width: 768px) {
+    display: none;
+  }
 `;
 
 const StyledNav = styled.nav`
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const StyledUl = styled.ul`
   list-style: none;
   padding: 0 2rem;
   margin: 0;
-  margin-bottom: 20rem;
   width: 100%;
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  height: 100%;
+  justify-content: space-around;
 `;
 
 const StyledLi = styled.li<{ $index: number }>`
@@ -80,17 +87,17 @@ const StyledLi = styled.li<{ $index: number }>`
   transform: translateY(20px);
   animation: fadeInDown 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: ${({ $index }) => 0.12 * $index}s;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   @keyframes fadeInDown {
-    0% {
+    from {
       opacity: 0;
       transform: translateY(20px);
     }
-    70% {
-      opacity: 1;
-      transform: translateY(-2px);
-    }
-    100% {
+    to {
       opacity: 1;
       transform: translateY(0);
     }
@@ -109,31 +116,10 @@ const StyledLink = styled(Link)`
   text-decoration: none;
   padding: 1rem;
   position: relative;
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition: transform 0.3s ease;
   text-align: center;
   border-radius: 8px;
-
-  &:hover {
-    color: var(--primary-color);
-    background-color: rgba(0, 0, 0, 0.05);
-    transform: translateY(-2px);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 0;
-    height: 3px;
-    background-color: var(--primary-color);
-    transition: width 0.3s ease, left 0.3s ease;
-  }
-
-  &:hover::after {
-    width: 80%;
-    left: 10%;
-  }
+  width: 100%;
 `;
 
 const StyledWrapper = styled.div`
