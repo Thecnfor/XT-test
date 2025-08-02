@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/layout/header";
 import SwitchNav from "@/components/features/switchNav";
 import Providers from '@/components/providers/Providers';
+import LoadingScreen from '@/components/features/LoadingScreen';
+import Footer from "@/components/layout/footer";
 
 import "./globals.css";
 import "@/styles/harmony.scss";
@@ -33,6 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <LoadingScreen />
         <Header />
         <Providers>
           <main>
@@ -40,6 +43,7 @@ export default function RootLayout({
             {children}
           </main>
         </Providers>
+        <Footer />
       </body>
     </html>
   );

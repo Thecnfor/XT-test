@@ -13,7 +13,7 @@ export default function Header() {
             <div>XRAK</div><span>.CO</span>
           </Link>
         </div>
-        <nav>
+        <nav className="header-nav">
             <AdminButton />
             <CheckNav />
         </nav>

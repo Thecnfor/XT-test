@@ -129,6 +129,7 @@ main{
     article {
         position: absolute;
         width: calc(100dvw - 200px);
+        padding-left: 1rem;
         left: 200px;
         flex-wrap: wrap;
         height: 70dvh;
@@ -418,5 +419,16 @@ main{
                 }
             }
         }
+    }
+}
+
+footer{
+    width: calc(100dvw - 200px);
+    position: fixed;
+    text-align: center;
+    right: 0;
+    bottom: 0;
+    @media (max-width: $md-width) {
+        width: 100dvw;
     }
 }

@@ -32,7 +32,16 @@
     left: 0;
 }
 
+@media (min-width: $md-width) {
+    .header-nav{
+        flex-direction: column;
+    }
+}
+
 .admin-button{
+    @media (min-width: $md-width) {
+        margin-left: 0;
+    }
     a{
         display: flex;
         align-items: center;
