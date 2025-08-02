@@ -5,8 +5,6 @@ import clsx from 'clsx';
 import Link from "next/link";
 import { useDispatch } from 'react-redux';
 import { setClass } from '@/store/NavSwitch';
-// 导入必要的类型
-import { Dispatch, SetStateAction } from 'react';
 import navLinks from '@/hooks/docs/links';
 
 // 链接已统一管理到 @/hooks/docs/links.ts 文件中

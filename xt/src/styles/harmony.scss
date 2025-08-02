@@ -1,6 +1,20 @@
 @use 'variables' as *;
 @use 'mixins' as *;
 
+*{
+    &::-webkit-scrollbar {
+        width: 0;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: transparent;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 header{
     & {
         z-index: 100;
@@ -34,7 +48,7 @@ header{
                 font: 28px sans-serif;
                 font-weight: 600;
                 color: var(--text-color);
-                font-family: '微软雅黑';
+                font-family: '微软雅黑', serif;
             }
             
             span{
@@ -70,12 +84,12 @@ nav{
         top:0;
         right: 0;
         z-index: 50;
-        transition: all 0.8s cubic-bezier(.22, 1, .36, 1);
+        transition: all 0.8s cubic-bezier(.22,1,.36,1);
         @media (max-width: $md-width) {
 
             left: -80dvw;
             width: 80dvw;
-            transition: all 0.8s cubic-bezier(.22, 1, .36, 1);
+            transition: all 0.8s cubic-bezier(.22,1,.36,1);
         }
         ul {
             width: 200px;
@@ -91,11 +105,11 @@ nav{
                 font: 14px sans-serif;
                 font-weight: 540;
                 cursor: pointer;
-                transition: all 0.8s cubic-bezier(.22, 1, .36, 1);
+                transition: all 0.8s cubic-bezier(.22,1,.36,1);
 
                 &:hover {
                     background-color: rgba(var(--rgb-color), 0.1);
-                    transition: all 0.8s cubic-bezier(.22, 1, .36, 1);
+                    transition: all 0.8s cubic-bezier(.22,1,.36,1);
 
                     div {
                         svg {
@@ -140,14 +154,12 @@ nav{
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        transition: all 0.8s cubic-bezier(.22,1,.36,1);
 
         &.chat-started {
             height: 92dvh;
             justify-content: flex-end;
             padding-bottom: 2rem;
             width: calc(100dvw - 200px);
-            transition: all 0.8s cubic-bezier(.22,1,.36,1);
             nav {
                 left: -80dvw;
             }
