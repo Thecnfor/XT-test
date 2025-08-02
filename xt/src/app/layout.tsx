@@ -37,7 +37,7 @@ export default function RootLayout({
         <Providers>
           <main>
             <SwitchNav />
-              {children}
+            {children}
           </main>
         </Providers>
       </body>

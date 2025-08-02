@@ -49,13 +49,13 @@ export default function SwitchNav() {
       <ul>
           {Object.entries(navLinks).map(([name, path]) => (
             <li key={name}>
-            <div>
-              <Link href={path}>
-              {name}
-              </Link>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
-            </div>
-          </li>
+              <div>
+                <Link href={path}>
+                {name}
+                </Link>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
+              </div>
+            </li>
         ))}
       </ul>
     </nav>

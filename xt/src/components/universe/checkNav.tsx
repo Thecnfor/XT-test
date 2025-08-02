@@ -46,9 +46,9 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   width: 100dvw;
   height: ${({ $isVisible }) => $isVisible ? 'calc(100svh - 64px)' : '0'};
   @media (prefers-color-scheme: dark) {
-    background-color: rgba(0, 0, 0, 0.95);
+    background-color: rgba(0, 0, 0, 0.65);
   }
-  background-color: rgba(255, 255, 255, 0.98);
+  background-color: rgba(255, 255, 255, 0.68);
   z-index: 75;
   opacity: ${({ $isVisible }) => $isVisible ? 1 : 0};
   overflow: hidden;
@@ -65,28 +65,26 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
 const StyledNav = styled.nav`
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
 `;
 
 const StyledUl = styled.ul`
   list-style: none;
-  padding: 0 2rem;
   margin: 0;
   width: 100%;
-  max-width: 1200px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  height: 100%;
   justify-content: space-around;
+  padding-top: 2rem;
 `;
 
 const StyledLi = styled.li<{ $index: number }>`
   opacity: 0;
   transform: translateY(20px);
   animation: fadeInDown 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: ${({ $index }) => 0.12 * $index}s;
+  animation-delay: ${({ $index }) => 0.05 * $index}s;
   flex: 1;
   display: flex;
   align-items: center;
@@ -106,20 +104,26 @@ const StyledLi = styled.li<{ $index: number }>`
 
 const StyledLinkContainer = styled.div`
   position: relative;
+  width: 100%;
+  height: 100%;
 `;
 
 const StyledLink = styled(Link)`
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1rem;
+  padding-left: 0;
   font-size: clamp(1.25rem, 3vw, 1.75rem);
   font-weight: 500;
   color: var(--text-color);
   text-decoration: none;
-  padding: 1rem;
   position: relative;
   transition: transform 0.3s ease;
   text-align: center;
   border-radius: 8px;
   width: 100%;
+  height: 100%;
 `;
 
 const StyledWrapper = styled.div`
