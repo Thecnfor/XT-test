@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github.css';
 
 export default function Home() {
   const [inputValue, setInputValue] = useState('');
@@ -79,7 +83,7 @@ export default function Home() {
 
     try {
       // 发送请求到后端流式API
-      const response = await fetch('http://localhost:8000/chat', {
+      const response = await fetch('http://192.168.1.137:8000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -153,22 +157,26 @@ export default function Home() {
               {messages.map(message => (
                 <div 
                   key={message.id} 
-                  className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'}`}
+                  className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'} ${message.sender === 'ai' && message.content === '' && isAIGenerating ? 'typing' : ''}`}
                 >
                   <div className='message-content'>
-                    {message.content}
+                    {message.sender === 'ai' && message.content === '' && isAIGenerating ? (
+                      <div className='typing-indicator'>
+                        <span></span><span></span><span></span>
+                      </div>
+                    ) : message.sender === 'ai' ? (
+                      <ReactMarkdown
+                        rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                        className='markdown-content'
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      message.content
+                    )}
                   </div>
                 </div>
               ))}
-              {isAIGenerating && (
-                <div className='message ai-message typing'>
-                  <div className='message-content'>
-                    <div className='typing-indicator'>
-                      <span></span><span></span><span></span>
-                    </div>
-                  </div>
-                </div>
-              )}
               <div ref={messagesEndRef} />
             </div>
           )}
@@ -180,7 +188,6 @@ export default function Home() {
                 value={inputValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                disabled={isAIGenerating}
               ></textarea>
             </div>
             <div className='input'>

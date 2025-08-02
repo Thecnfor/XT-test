@@ -180,27 +180,24 @@ main{
                     background-color: rgba(var(--rgb-color), 0.02);
                 }
 
-                // 美化滚动条
-                &::-webkit-scrollbar {
-                    width: 6px;
-                }
-                &::-webkit-scrollbar-track {
-                    background: rgba(var(--rgb-color), 0.05);
-                    border-radius: 10px;
-                }
-                &::-webkit-scrollbar-thumb {
-                    background: rgba(var(--rgb-color), 0.3);
-                    border-radius: 10px;
-                }
-                &::-webkit-scrollbar-thumb:hover {
-                    background: rgba(var(--rgb-color), 0.5);
-                }
+                // 隐藏滚动条
+            &::-webkit-scrollbar {
+                width: 0;
+            }
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            &::-webkit-scrollbar-thumb {
+                background: transparent;
+            }
+            -ms-overflow-style: none;
+            scrollbar-width: none;
             }
             
             .message {
                 margin-bottom: 16px;
                 display: flex;
-                max-width: 80%;
+                max-width: 100%;
                 animation: fadeIn 0.3s ease-in-out;
             }
             
@@ -235,6 +232,40 @@ main{
                 color: var(--text-color);
                 @media (prefers-color-scheme: light) {
                     background-color: rgba(var(--rgb-color), 0.05);
+                }
+            }
+
+            // 打字指示器样式
+            .typing-indicator {
+                display: flex;
+                align-items: center;
+                padding: 10px 0;
+            }
+
+            .typing-indicator span {
+                height: 8px;
+                width: 8px;
+                margin: 0 2px;
+                background-color: var(--text-color);
+                border-radius: 50%;
+                display: inline-block;
+                animation: typing 1.4s infinite ease-in-out both;
+            }
+
+            .typing-indicator span:nth-child(1) {
+                animation-delay: -0.32s;
+            }
+
+            .typing-indicator span:nth-child(2) {
+                animation-delay: -0.16s;
+            }
+
+            @keyframes typing {
+                0%, 80%, 100% {
+                    transform: scale(0);
+                }
+                40% {
+                    transform: scale(1);
                 }
             }
             
