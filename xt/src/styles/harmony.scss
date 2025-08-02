@@ -260,6 +260,72 @@ main{
                 animation-delay: -0.16s;
             }
 
+            // Markdown内容样式
+            .markdown-content {
+                font: 16px sans-serif;
+                line-height: 1.6;
+
+                // 标题样式
+
+                h1 {
+                    font-size: 1.8em;
+                    border-bottom: 1px solid rgba(var(--rgb-color), 0.2);
+                }
+
+                h2 {
+                    font-size: 1.5em;
+                }
+
+                h3 {
+                    font-size: 1.3em;
+                }
+
+                ul {
+                    list-style-type: disc;
+                }
+
+                ol {
+                    list-style-type: decimal;
+                }
+
+                // 代码块样式
+                pre {
+                    background-color: rgba(var(--rgb-color), 0.05);
+                    border-radius: 8px;
+                    overflow-x: auto;
+                }
+
+                code {
+                    font-family: 'Courier New', Courier, monospace;
+                    background-color: rgba(var(--rgb-color), 0.05);
+                    border-radius: 4px;
+                    font-size: 0.9em;
+                }
+
+                pre code {
+                    background-color: transparent;
+                    padding: 0;
+                    border-radius: 0;
+                }
+
+                // 引用样式
+                blockquote {
+                    border-left: 3px solid var(--text-color);
+                    padding-left: 1em;
+                    margin-left: 0;
+                    color: rgba(var(--rgb-color), 0.8);
+                }
+
+                // 链接样式
+                a {
+                    color: #0366d6;
+                    text-decoration: none;
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+
             @keyframes typing {
                 0%, 80%, 100% {
                     transform: scale(0);

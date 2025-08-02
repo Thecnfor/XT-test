@@ -83,7 +83,7 @@ export default function Home() {
 
     try {
       // 发送请求到后端流式API
-      const response = await fetch('http://192.168.1.137:8000/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -165,12 +165,13 @@ export default function Home() {
                         <span></span><span></span><span></span>
                       </div>
                     ) : message.sender === 'ai' ? (
-                      <ReactMarkdown
-                        rehypePlugins={[rehypeRaw, rehypeHighlight]}
-                        className='markdown-content'
-                      >
-                        {message.content}
-                      </ReactMarkdown>
+                      <div className='markdown-content'>
+                        <ReactMarkdown
+                          rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
                     ) : (
                       message.content
                     )}
