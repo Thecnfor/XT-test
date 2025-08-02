@@ -143,14 +143,14 @@ export default function Home() {
     }
   };
 
-  const dataChat: string = "开始对话";
+  const helloChat: string = "开始对话";
   return (
     <>
       <article className={`${activeClass} ${isChatStarted ? 'chat-started' : ''}`}>
         <div className={`container`}>
           {!isChatStarted ? (
             <div className='container-header'>
-              {dataChat}
+              {helloChat}
             </div>
           ) : (
             <div className='chat-history'>
