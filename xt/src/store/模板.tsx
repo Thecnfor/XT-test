@@ -1,9 +1,9 @@
 'use client'
 
-import { useSelector } from "react-redux";
+import { useAppSelector } from "@/store";
 
 export default function DateLog() {
-  const activeClass = useSelector((state) => state?.nav?.activeClass || '');
+  const activeClass = useAppSelector((state) => state?.navSwitch?.activeClass || '');
   
   return (
     <article className={`${activeClass}`}>

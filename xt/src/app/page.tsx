@@ -1,7 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import type { CSSProperties } from 'react';
+
+// 定义样式对象并应用CSSProperties类型注解
+const chatHistoryStyle: CSSProperties = {
+  height: 'calc(100vh - 200px)',
+  overflowY: 'auto'
+};
+import { useAppSelector } from '@/store';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
@@ -13,7 +20,7 @@ export default function Home() {
   const [isChatStarted, setIsChatStarted] = useState(false);
   const [isAIGenerating, setIsAIGenerating] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const activeClass = useSelector((state) => state?.nav?.activeClass || '');
+  const activeClass = useAppSelector((state) => state?.navSwitch?.activeClass || '');
 
   // 监听messages变化，自动滚动到底部
   useEffect(() => {
@@ -53,7 +60,12 @@ export default function Home() {
       }
 
       // 更新本地状态以立即显示消息
-      const userMessage = {id: `user-${Date.now().toString()}`, content: inputValue, sender: 'user', timestamp: Date.now()};
+      const userMessage: {id: string, content: string, sender: 'user' | 'ai', timestamp: number} = {
+        id: `user-${Date.now().toString()}`,
+        content: inputValue,
+        sender: 'user',
+        timestamp: Date.now()
+      };
       setMessages([...messages, userMessage]);
       // 清空输入框
       setInputValue('');
@@ -78,7 +90,12 @@ export default function Home() {
 
     // 创建AI消息的初始状态
     const aiMessageId = `ai-${Date.now().toString()}`;
-    const initialAiMessage = { id: aiMessageId, content: '', sender: 'ai', timestamp: Date.now() };
+    const initialAiMessage: {id: string, content: string, sender: 'user' | 'ai', timestamp: number} = {
+      id: aiMessageId,
+      content: '',
+      sender: 'ai',
+      timestamp: Date.now()
+    };
     setMessages([...currentMessages, initialAiMessage]);
 
     try {

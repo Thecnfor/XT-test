@@ -4,25 +4,27 @@ import React, { useState, useEffect, memo } from 'react';
 import styled from 'styled-components';
 
 
+import type { CSSProperties } from 'react';
+
 // 内联样式以确保优先加载
 const styles = {
   loadingOverlay: {
-    position: 'fixed',
+    position: 'fixed' as const,
     top: 0,
     left: 0,
     width: '100vw',
     height: '100vh',
     backgroundColor: 'var(--bg-color)',
     zIndex: 9999,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    display: 'flex' as const,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     transition: 'opacity 1s ease-out, transform 1s ease-out, filter 1s ease-out, z-index 0s linear 1s',
   },
   loadingContent: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    display: 'flex' as const,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     transition: 'transform 1s ease-out',
   },
   // 消失动画的样式
@@ -170,13 +172,13 @@ const LoadingScreen = () => {
   if (!isLoading) return null;
 
   // 合并基础样式和动画样式
-  const overlayStyle = {
+  const overlayStyle: React.CSSProperties = {
     ...styles.loadingOverlay,
     ...(isFadingOut ? styles.fadingOut : {}),
   };
 
   // 内容缩放动画
-  const contentStyle = {
+  const contentStyle: React.CSSProperties = {
     ...styles.loadingContent,
     transform: isFadingOut ? 'scale(0)' : 'scale(1)',
   };
