@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
       // 处理流式响应
-      const encoder = new TextEncoder();
+      new TextEncoder();
       const readableStream = new ReadableStream({
         async start(controller) {
           const reader = response.body?.getReader();

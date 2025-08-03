@@ -1,13 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react';
-import type { CSSProperties } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // 定义样式对象并应用CSSProperties类型注解
-const chatHistoryStyle: CSSProperties = {
-  height: 'calc(100vh - 200px)',
-  overflowY: 'auto'
-};
 import { useAppSelector } from '@/store';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -47,7 +42,7 @@ export default function Home() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSend().then(() => scrollToBottom());
     }
   };
 

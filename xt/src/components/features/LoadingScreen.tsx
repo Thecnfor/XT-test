@@ -4,8 +4,6 @@ import React, { useState, useEffect, memo } from 'react';
 import styled from 'styled-components';
 
 
-import type { CSSProperties } from 'react';
-
 // 内联样式以确保优先加载
 const styles = {
   loadingOverlay: {
@@ -62,42 +60,42 @@ const StyledWrapper = styled.div`
     position: absolute;
     border-radius: 50%;
     animation: pulsOut 1.8s ease-in-out infinite;
-    filter: drop-shadow(0 0 1rem rgba(255, 255, 255, 0.75));
+    filter: drop-shadow(0 0 1rem var(--text-color));
   }
 
   .loader:before {
     width: 100%;
     padding-bottom: 100%;
-    box-shadow: inset 0 0 0 1rem #fff;
+    box-shadow: inset 0 0 0 1rem var(--text-color);
     animation-name: pulsIn;
   }
 
   .loader:after {
     width: calc(100% - 2rem);
     padding-bottom: calc(100% - 2rem);
-    box-shadow: 0 0 0 0 #fff;
+    box-shadow: 0 0 0 0 var(--text-color);
   }
 
   @keyframes pulsIn {
     0% {
-      box-shadow: inset 0 0 0 1rem #fff;
+      box-shadow: inset 0 0 0 1rem var(--text-color);
       opacity: 1;
     }
 
     50%, 100% {
-      box-shadow: inset 0 0 0 0 #fff;
+      box-shadow: inset 0 0 0 0 var(--text-color);
       opacity: 0;
     }
   }
 
   @keyframes pulsOut {
     0%, 50% {
-      box-shadow: 0 0 0 0 #fff;
+      box-shadow: 0 0 0 0 var(--text-color);
       opacity: 0;
     }
 
     100% {
-      box-shadow: 0 0 0 1rem #fff;
+      box-shadow: 0 0 0 1rem var(--text-color);
       opacity: 1;
     }
   }`;

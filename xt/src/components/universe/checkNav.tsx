@@ -41,14 +41,15 @@ const CheckNav = () => {
 
 const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   position: fixed;
-  top: 64px;
+  top: 0;
   left: 0;
   width: 100dvw;
   height: ${({ $isVisible }) => $isVisible ? 'calc(100svh - 64px)' : '0'};
   @media (prefers-color-scheme: dark) {
-    background-color: rgba(0, 0, 0, 0.65);
+    background-color: rgba(0, 0, 0, 0.85);
   }
-  background-color: rgba(255, 255, 255, 0.68);
+  background-color: rgba(255, 255, 255, 0.88);
+  filter: blur(5000);
   z-index: 75;
   opacity: ${({ $isVisible }) => $isVisible ? 1 : 0};
   overflow: hidden;
@@ -64,6 +65,8 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
 
 const StyledNav = styled.nav`
   height: 100%;
+  margin-top: 1rem;
+  margin-left: 1rem;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -112,10 +115,9 @@ const StyledLink = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 1rem;
-  padding-left: 0;
-  font-size: clamp(1.25rem, 3vw, 1.75rem);
-  font-weight: 500;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 600;
   color: var(--text-color);
   text-decoration: none;
   position: relative;
@@ -127,6 +129,7 @@ const StyledLink = styled(Link)`
 `;
 
 const StyledWrapper = styled.div`
+  z-index: 1000;
   .hamburger {
     cursor: pointer;
   }

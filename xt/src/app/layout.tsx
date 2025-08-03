@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/layout/header";
@@ -9,6 +10,7 @@ import Footer from "@/components/layout/footer";
 import "./globals.css";
 import "@/styles/harmony.scss";
 import '@/components/features/feature.scss'
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,9 +43,9 @@ export default function RootLayout({
           <main>
             <SwitchNav />
             {children}
+            <Footer />
           </main>
         </Providers>
-        <Footer />
       </body>
     </html>
   );
