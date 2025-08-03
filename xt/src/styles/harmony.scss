@@ -94,7 +94,7 @@ nav{
         ul {
             width: 200px;
             position: fixed;
-            overflow: hidden;
+            overflow: scroll;
             li {
                 margin: 8px 12px;
                 padding-left: 12px;
@@ -145,11 +145,22 @@ nav{
     }
 }
 .mainPage{
-    height: 100svh;
+    margin-top: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    @media (min-width: $md-width) {
+        :has(.chat-started) > &{
+            justify-content: space-around;
+        }
+    }
+
     article {
+        max-width: $lg-width;
         width: 100%;
         flex-wrap: wrap;
-        height: 80svh;
+        height: 100svh;
+        max-height: $md-width;
         @media (max-width: $md-width) {
             height: 100%;
         }
@@ -160,7 +171,6 @@ nav{
 
         &.chat-started {
             justify-content: flex-end;
-            padding-bottom: 3rem;
         }
 
         @media (max-width: $md-width) {
@@ -175,7 +185,6 @@ nav{
             padding-bottom: 1rem;
         }
         .container{
-                width: 100%;
                 display: flex;
                 margin-bottom: 0;
                 flex-direction: column;
@@ -189,7 +198,6 @@ nav{
                 max-height: 500px;
                 overflow-y: auto;
                 margin-bottom: 2rem;
-                padding: 10px;
                 transition: all 0.8s cubic-bezier(.22,1,.36,1);
                 @media (prefers-color-scheme: light) {
                     background-color: rgba(var(--rgb-color), 0.02);
@@ -413,8 +421,8 @@ nav{
                     overflow: hidden;
                     .generating{
                         background-color: var(--bg-color);
-                        width: 16px;
-                        height:16px;
+                        width: 14px;
+                        height:14px;
                         border-radius: 5px;
                     }
                     svg{

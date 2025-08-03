@@ -14,8 +14,28 @@ export default function Home() {
   const [messages, setMessages] = useState<Array<{id: string, content: string, sender: 'user' | 'ai', timestamp: number}>>([]);
   const [isChatStarted, setIsChatStarted] = useState(false);
   const [isAIGenerating, setIsAIGenerating] = useState(false);
+  const [isAbortedByUser, setIsAbortedByUser] = useState(false);
+  const [isRequestActive, setIsRequestActive] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeClass = useAppSelector((state) => state?.navSwitch?.activeClass || '');
+
+  // 停止AI生成
+  const stopAIGeneration = () => {
+    if (isAIGenerating) {
+      setIsAbortedByUser(true);
+      setIsAIGenerating(false);
+      if (abortControllerRef.current && isRequestActive) {
+        try {
+          abortControllerRef.current.abort();
+        } catch (error) {
+          console.error('Error aborting request:', error);
+        }
+        abortControllerRef.current = null;
+        setIsRequestActive(false);
+      }
+    }
+  };
 
   // 监听messages变化，自动滚动到底部
   useEffect(() => {
@@ -48,7 +68,12 @@ export default function Home() {
 
   // 处理发送按钮点击
   const handleSend = async () => {
-    if (inputValue.trim() && !isAIGenerating) {
+    if (isAIGenerating) {
+      stopAIGeneration();
+      return;
+    }
+
+    if (inputValue.trim()) {
       // 标记聊天已开始
       if (!isChatStarted) {
         setIsChatStarted(true);
@@ -72,7 +97,22 @@ export default function Home() {
 
   // 发送消息到后端并处理流式响应
   const sendMessageToBackend = async (currentMessages: Array<{id: string, content: string, sender: 'user' | 'ai', timestamp: number}>) => {
+    // 确保之前的控制器已被清理
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort();
+      } catch (error) {
+        console.error('Error aborting previous request:', error);
+      }
+      abortControllerRef.current = null;
+    }
+
+    // 创建新的AbortController
+    abortControllerRef.current = new AbortController();
     setIsAIGenerating(true);
+    setIsAbortedByUser(false);
+    setIsRequestActive(true);
+    let wasAbortedByUser = false;
 
     // 准备发送给后端的消息格式
     const formattedMessages = [
@@ -100,6 +140,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json'
         },
+        signal: abortControllerRef.current?.signal,
         body: JSON.stringify({ messages: formattedMessages })
       });
 
@@ -117,43 +158,86 @@ export default function Home() {
       let aiMessageContent = '';
 
       // 循环读取流数据
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          // 检查是否已被用户中止
+          if (isAbortedByUser) {
+            break;
+          }
 
-        const chunk = decoder.decode(value, { stream: true });
-        // 分割SSE消息
-        const lines = chunk.split('\n\n');
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6);
-            if (data === '[DONE]') {
-              // 流式响应结束
-              break;
+          const chunk = decoder.decode(value, { stream: true });
+          // 分割SSE消息
+          const lines = chunk.split('\n\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.substring(6);
+              if (data === '[DONE]') {
+                // 流式响应结束
+                break;
+              }
+              // 更新AI消息内容
+              aiMessageContent += data;
+              setMessages(prevMessages => 
+                prevMessages.map(msg => 
+                  msg.id === aiMessageId ? { ...msg, content: aiMessageContent } : msg
+                )
+              );
             }
-            // 更新AI消息内容
-            aiMessageContent += data;
-            setMessages(prevMessages => 
-              prevMessages.map(msg => 
-                msg.id === aiMessageId ? { ...msg, content: aiMessageContent } : msg
-              )
-            );
+          }
+        }
+      } catch (streamError) {
+        // 处理流读取过程中的错误
+        if (!(streamError instanceof DOMException && streamError.name === 'AbortError')) {
+          console.error('Error reading stream:', streamError);
+        } else {
+          wasAbortedByUser = true;
+        }
+      } finally {
+        // 确保关闭读取器，但仅在未被用户中止的情况下
+        try {
+          if (reader && !wasAbortedByUser) {
+            await reader.cancel();
+          }
+        } catch (cancelError) {
+          // 忽略用户中止导致的取消错误
+          if (!(cancelError instanceof DOMException && cancelError.name === 'AbortError')) {
+            console.error('Error canceling reader:', cancelError);
           }
         }
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      // 更新AI消息为错误信息
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === aiMessageId ? { ...msg, content: 'Sorry, there was an error processing your request.' } : msg
-        )
-      );
+      // 精确处理AbortError
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        console.log('Request aborted by user');
+      } else {
+        console.error('Error sending message:', error);
+        // 使用函数形式确保获取最新状态
+        setMessages(prevMessages => {
+          // 区分用户主动中止和其他错误
+          if (isAbortedByUser) {
+            // 用户主动中止，清除AI消息
+            return prevMessages.filter(msg => msg.id !== aiMessageId);
+          } else {
+            // 更新AI消息为错误信息
+            return prevMessages.map(msg => 
+              msg.id === aiMessageId ? { ...msg, content: 'Sorry, there was an error processing your request.' } : msg
+            );
+          }
+        });
+      }
     } finally {
       setIsAIGenerating(false);
+      setIsRequestActive(false);
+      // 重置用户中止状态
+      setIsAbortedByUser(false);
+      // 清理AbortController
+      abortControllerRef.current = null;
     }
-  };
+  }
 
   const helloChat: string = "开始对话";
   return (
@@ -207,13 +291,16 @@ export default function Home() {
               <button
                 type="button"
                 title="发送"
-                disabled={!inputValue.trim() || isAIGenerating}
+                disabled={!inputValue.trim() && !isAIGenerating}
                 onClick={handleSend}
               >
-                <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 22L16 10M16 10L11 15M16 10L21 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
-                </svg>
-                <div className={'generating'}></div>
+                {!isAIGenerating ? (
+                  <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 22L16 10M16 10L11 15M16 10L21 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                ) : (
+                  <div className={'generating'}></div>
+                )}
               </button>
             </div>
           </div>
