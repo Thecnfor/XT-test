@@ -213,6 +213,7 @@ export default function Home() {
                 <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M16 22L16 10M16 10L11 15M16 10L21 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
+                <div className={'generating'}></div>
               </button>
             </div>
           </div>

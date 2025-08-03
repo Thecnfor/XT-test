@@ -44,7 +44,7 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   top: 0;
   left: 0;
   width: 100dvw;
-  height: ${({ $isVisible }) => $isVisible ? 'calc(100svh - 64px)' : '0'};
+  height: ${({ $isVisible }) => $isVisible ? '100svh' : '0'};
   @media (prefers-color-scheme: dark) {
     background-color: rgba(0, 0, 0, 0.85);
   }
@@ -65,7 +65,7 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
 
 const StyledNav = styled.nav`
   height: 100%;
-  margin-top: 1rem;
+  margin-top: 3rem;
   margin-left: 1rem;
   display: flex;
   align-items: flex-start;

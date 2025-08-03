@@ -407,6 +407,16 @@ nav{
                     border-radius: 25px;
                     cursor: pointer;
                     background-color: var(--text-color);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                    .generating{
+                        background-color: var(--bg-color);
+                        width: 16px;
+                        height:16px;
+                        border-radius: 5px;
+                    }
                     svg{
                         color: var(--bg-color);
                     }
