@@ -162,7 +162,7 @@ export default function Home() {
 
   const helloChat: string = "开始对话";
   return (
-    <>
+    <div className={`mainPage`}>
       <article className={`${activeClass} ${isChatStarted ? 'chat-started' : ''}`}>
         <div className={`container`}>
           {!isChatStarted ? (
@@ -172,8 +172,8 @@ export default function Home() {
           ) : (
             <div className='chat-history'>
               {messages.map(message => (
-                <div 
-                  key={message.id} 
+                <div
+                  key={message.id}
                   className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'} ${message.sender === 'ai' && message.content === '' && isAIGenerating ? 'typing' : ''}`}
                 >
                   <div className='message-content'>
@@ -198,10 +198,10 @@ export default function Home() {
               <div ref={messagesEndRef} />
             </div>
           )}
-          
+
           <div className='container-chat'>
             <div className='content'>
-              <textarea 
+              <textarea
                 placeholder="请输入内容"
                 value={inputValue}
                 onChange={handleInputChange}
@@ -209,9 +209,9 @@ export default function Home() {
               ></textarea>
             </div>
             <div className='input'>
-              <button 
-                type="button" 
-                title="发送" 
+              <button
+                type="button"
+                title="发送"
                 disabled={!inputValue.trim() || isAIGenerating}
                 onClick={handleSend}
               >
@@ -223,6 +223,6 @@ export default function Home() {
           </div>
         </div>
       </article>
-    </>
+    </div>
   );
 }
