@@ -134,7 +134,7 @@ nav{
         width: 200px;
         top: 0;
         .nav-tag{
-          padding: 24px 24px 0;
+          padding: 24px 24px 2px;
           cursor: default;
           color: rgba(var(--rgb-color));
           @media (prefers-color-scheme: dark) {
@@ -502,6 +502,9 @@ nav{
           }
         }
       }
+    }
+    .docker-container{
+      width: 100%;
     }
   }
 }
