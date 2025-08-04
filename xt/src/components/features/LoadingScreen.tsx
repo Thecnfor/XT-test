@@ -44,14 +44,24 @@ const Loader = () => {
 }
 
 const LoadingScreen = () => {
-  // 使用 sessionStorage 确保只在当前会话中显示一次
+  // 智能判断是否显示加载画面
   const [isLoading, setIsLoading] = useState(() => {
-    // 在服务器端或浏览器不支持sessionStorage时默认显示加载画面
-    if (typeof window === 'undefined' || !window.sessionStorage) {
+    // 在服务器端时默认显示加载画面
+    if (typeof window === 'undefined') {
       return true;
     }
-    // 检查当前会话是否已经显示过加载画面
-    return !sessionStorage.getItem('hasShownLoading');
+    
+    // 开发环境：每次都显示
+    if (process.env.NODE_ENV === 'development') {
+      return true;
+    }
+    
+    // 生产环境：使用 sessionStorage 确保只在当前会话中显示一次
+    if (window.sessionStorage) {
+      return !sessionStorage.getItem('hasShownLoading');
+    }
+    
+    return true;
   });
   const [isFadingOut, setIsFadingOut] = useState(false);
 
@@ -62,8 +72,8 @@ const LoadingScreen = () => {
       return;
     }
 
-    // 标记为已显示，确保只显示一次
-    if (typeof window !== 'undefined' && window.sessionStorage) {
+    // 只在生产环境中标记为已显示
+    if (typeof window !== 'undefined' && window.sessionStorage && process.env.NODE_ENV === 'production') {
       sessionStorage.setItem('hasShownLoading', 'true');
     }
 

@@ -102,9 +102,7 @@ nav{
                     left: -200px;
                 }
                 .nav-backHome{
-                    margin: 8px 12px;
-                    margin-bottom: 0;
-                    margin-left: 12px;
+                    margin: 8px 12px 0;
                     padding-left: 12px;
                     height: 38px;
                     align-items: center;
@@ -114,7 +112,15 @@ nav{
                     font-weight: 540;
                     cursor: pointer;
                     transition: all 0.8s cubic-bezier(.22,1,.36,1);
-                    *{color: rgba(var(--rgb-color), 0.5);}
+                    *{color: rgba(var(--rgb-color), 0.8);}
+                    @media (prefers-color-scheme: dark) {
+                        *{color: rgba(var(--rgb-color), 0.5);}
+                    }
+                    span{
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
                     span{padding-left: 0.5rem;}
                     &:hover{
                         svg{
@@ -131,7 +137,10 @@ nav{
                     padding: 24px;
                     padding-bottom: 0;
                     cursor: default;
-                    color: rgba(var(--rgb-color), 0.5);
+                    color: rgba(var(--rgb-color));
+                    @media (prefers-color-scheme: dark) {
+                        color: rgba(var(--rgb-color), 0.5);
+                    }
                     -webkit-user-select: none;
                     user-select: none;
                     font: 14px sans-serif;

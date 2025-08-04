@@ -20,17 +20,28 @@ const CheckNav = () => {
         </svg>
       </label>
     </StyledWrapper>
+    <StyledBackdrop $isVisible={isChecked} />
     <StyledShowMore $isVisible={isChecked}>
       <StyledNav>
         <StyledUl key={isChecked ? 'checked' : 'unchecked'}>
             {Object.entries(navLinks).map(([name, link], index) => (
-              <StyledLi key={`${name}-${isChecked}`} $index={index}>
-                <StyledLinkContainer>
-                  <StyledLink href={link.path}>
-                    {name}
-                  </StyledLink>
-                </StyledLinkContainer>
-              </StyledLi>
+              isChecked ? (
+                <StyledLiIn key={`${name}-${isChecked}`} $index={index}>
+                  <StyledLinkContainer>
+                    <StyledLink href={link.path}>
+                      {name}
+                    </StyledLink>
+                  </StyledLinkContainer>
+                </StyledLiIn>
+              ) : (
+                <StyledLiOut key={`${name}-${isChecked}`} $index={index}>
+                  <StyledLinkContainer>
+                    <StyledLink href={link.path}>
+                      {name}
+                    </StyledLink>
+                  </StyledLinkContainer>
+                </StyledLiOut>
+              )
             ))}
         </StyledUl>
       </StyledNav>
@@ -39,6 +50,23 @@ const CheckNav = () => {
   );
 }
 
+const StyledBackdrop =styled.div<{ $isVisible: boolean }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  @media (prefers-color-scheme: dark) {
+    background-color: rgba(0, 0, 0, 0.66);
+  }
+  background-color: rgba(255, 255, 255, 0.82);
+  z-index: ${({ $isVisible }) => $isVisible ? '74' : '0'};
+  opacity: ${({ $isVisible }) => $isVisible ? 1 : 0};
+  pointer-events: ${({ $isVisible }) => $isVisible ? 'auto' : 'none'};
+  transition: all .8s cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(8000px);
+`
+
 const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   position: fixed;
   top: 0;
@@ -46,18 +74,17 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   width: 100dvw;
   height: ${({ $isVisible }) => $isVisible ? '100svh' : '0'};
   @media (prefers-color-scheme: dark) {
-    background-color: rgba(0, 0, 0, 0.85);
+    background-color: rgba(0, 0, 0, 0.66);
   }
-  background-color: rgba(255, 255, 255, 0.88);
+  background-color: rgba(255, 255, 255, 0.82);
   filter: blur(5000);
   z-index: 75;
   opacity: ${({ $isVisible }) => $isVisible ? 1 : 0};
   overflow: hidden;
   will-change: height, opacity, transform;
-  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), height 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1), height 1.2s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: ${({ $isVisible }) => $isVisible ? 'auto' : 'none'};
   backdrop-filter: blur(8px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   @media (min-width: 768px) {
     display: none;
   }
@@ -83,15 +110,37 @@ const StyledUl = styled.ul`
   padding-left: 0.3rem;
 `;
 
-const StyledLi = styled.li<{ $index: number }>`
+const StyledLiIn = styled.li<{ $index: number }>`
   opacity: 0;
   transform: translateY(20px);
-  animation: fadeInDown 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: fadeInDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: ${({ $index }) => 0.05 * $index}s;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+`;
+
+const StyledLiOut = styled.li<{ $index: number }>`
+  opacity: 1;
+  transform: translateY(0);
+  animation: fadeOutUp 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: ${({ $index }) => 0.05 * (7 - $index)}s; /* 8个链接，最大索引为7 */
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @keyframes fadeOutUp {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+  }
 
   @keyframes fadeInDown {
     from {
@@ -121,7 +170,7 @@ const StyledLink = styled(Link)`
   color: var(--text-color);
   text-decoration: none;
   position: relative;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   text-align: center;
   border-radius: 8px;
   width: 100%;
