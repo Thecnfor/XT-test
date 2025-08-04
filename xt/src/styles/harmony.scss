@@ -134,8 +134,7 @@ nav{
                 width: 200px;
                 top: 0;
                 .nav-tag{
-                    padding: 24px;
-                    padding-bottom: 0;
+                    padding: 24px 24px 0;
                     cursor: default;
                     color: rgba(var(--rgb-color));
                     @media (prefers-color-scheme: dark) {
