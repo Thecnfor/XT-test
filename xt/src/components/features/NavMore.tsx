@@ -1,0 +1,55 @@
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import React, { Fragment } from 'react';
+import navLinks from '@/hooks/docs/links';
+import clsx from 'clsx';
+import NavLinks, { CategoryLinks } from '@/types/navLinks';
+
+// 为navLinks添加类型注解
+const typedNavLinks: NavLinks = navLinks;
+
+export function NavMore() {
+    const pathname = usePathname();
+    const isHomePage = pathname === '/';
+
+    const navMoreStyle = {
+        position: 'absolute',
+        left: isHomePage ? '200px' : '0',
+        opacity: isHomePage ? 0 : 1,
+        zIndex: 0,
+    };
+
+    return (
+        <div style={navMoreStyle as React.CSSProperties}>
+            <Link href={'/'} className='nav-backHome'>
+                    <svg className="w-[15px] md:w-[11px]" width="10" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.245636 8.59302C-0.0818787 8.2655 -0.0818787 7.7345 0.245636 7.40698L4.43892 3.2137C4.76643 2.88619 5.29744 2.88619 5.62495 3.2137C5.95247 3.54122 5.95247 4.07223 5.62495 4.39974L2.86335 7.16134H10.9025C11.3657 7.16134 11.7412 7.53682 11.7412 8C11.7412 8.46318 11.3657 8.83866 10.9025 8.83866H2.86335L5.62495 11.6003C5.95247 11.9278 5.95247 12.4588 5.62495 12.7863C5.29744 13.1138 4.76643 13.1138 4.43892 12.7863L0.245636 8.59302Z" fill="currentColor"></path></svg>
+                <span>首页</span>
+            </Link>
+            {Object.entries(typedNavLinks).map(([name, link]) => {
+                const className = `nav-${link.path.substring(1)}`;
+                // 检查当前路径是否与链接路径匹配，包括子路径
+                const isActive = pathname === link.path || pathname.startsWith(`${link.path}/`);
+                // 只显示与当前路径匹配的导航
+                const displayStyle = isActive ? 'block' : 'none';
+                
+                return (
+                    <ul key={name} className={className} style={{ display: displayStyle }}>
+                        {link.subLinks && Object.entries(link.subLinks).map(([subName, subLink]) => (
+                            <li key={subName} className={clsx({ 'active-link': pathname === subLink.path })}><Link href={subLink.path}>{subName}</Link></li>
+                        ))}
+                        {Object.keys(link).filter(key => !['path', 'hasSubLinks', 'subLinks'].includes(key)).map((category) => (
+                            <div key={category} className="nav-tag">{category}</div>
+                        ))}
+                        {Object.keys(link).filter(key => !['path', 'hasSubLinks', 'subLinks'].includes(key)).map((category) => (
+                            <Fragment key={category}>
+                                {link[category] && Object.entries(link[category] as CategoryLinks).map(([subName, subLink]) => (
+                                    <li key={subName} className={clsx({ 'active-link': pathname === subLink.path })}><Link href={subLink.path}>{subName}</Link></li>
+                                ))}
+                            </Fragment>
+                        ))}
+                    </ul>
+                );
+            })}
+        </div>
+    );
+}

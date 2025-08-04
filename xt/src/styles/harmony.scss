@@ -45,8 +45,8 @@ header{
             flex-wrap: nowrap;
         
             div{
-                font: 28px sans-serif;
-                font-weight: 600;
+                font: 22px sans-serif;
+                font-weight: 500;
                 color: var(--text-color);
                 font-family: '微软雅黑', serif;
             }
@@ -64,9 +64,6 @@ header{
 nav{
     display: flex;
     align-items: center;
-    div{
-        margin-left: 12px;
-    }
     @media (min-width: $md-width) {
         .hamburger{
             display: none;
@@ -80,64 +77,118 @@ nav{
     nav {
         position: absolute;
         width: 200px;
-        padding-top: 28rem;
+        padding-top: 13rem;
         top:0;
         right: 0;
         z-index: 50;
         transition: all 0.8s cubic-bezier(.22,1,.36,1);
         @media (max-width: $md-width) {
-
             left: -80dvw;
             width: 80dvw;
             transition: all 0.8s cubic-bezier(.22,1,.36,1);
         }
-        ul {
+        .nav-content {
             width: 200px;
             position: fixed;
-            overflow: scroll;
-            li {
-                margin: 8px 12px;
-                padding-left: 12px;
-                height: 38px;
-                align-items: center;
-                display: flex;
-                border-radius: 10px;
-                font: 14px sans-serif;
-                font-weight: 540;
-                cursor: pointer;
-                transition: all 0.8s cubic-bezier(.22,1,.36,1);
-
-                &:hover {
-                    background-color: rgba(var(--rgb-color), 0.1);
+            div{
+                position: relative;
+                .nav-home{
+                    position: absolute;
+                    opacity: 1;
+                    left: 0;
+                }
+                .nav-home-left{
+                    opacity: 0;
+                    left: -200px;
+                }
+                .nav-backHome{
+                    margin: 8px 12px;
+                    margin-bottom: 0;
+                    margin-left: 12px;
+                    padding-left: 12px;
+                    height: 38px;
+                    align-items: center;
+                    display: flex;
+                    border-radius: 10px;
+                    font: 14px sans-serif;
+                    font-weight: 540;
+                    cursor: pointer;
                     transition: all 0.8s cubic-bezier(.22,1,.36,1);
-
-                    div {
-                        svg {
-                            opacity: 1;
+                    *{color: rgba(var(--rgb-color), 0.5);}
+                    span{padding-left: 0.5rem;}
+                    &:hover{
+                        svg{
+                            transform: translateX(-4px);
                         }
                     }
                 }
-
-                div {
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    justify-content: flex-end;
+            }
+            ul{
+                overflow: scroll;
+                width: 200px;
+                top: 0;
+                .nav-tag{
+                    padding: 24px;
+                    padding-bottom: 0;
+                    cursor: default;
+                    color: rgba(var(--rgb-color), 0.5);
+                    -webkit-user-select: none;
+                    user-select: none;
+                    font: 14px sans-serif;
+                }
+                li {
+                    margin: 8px 12px;
+                    padding-left: 12px;
+                    height: 38px;
                     align-items: center;
-                    position: relative;
-
-                    a {
-                        position: absolute;
+                    display: flex;
+                    border-radius: 10px;
+                    font: 14px sans-serif;
+                    font-weight: 540;
+                    cursor: pointer;
+                    transition: all 0.8s cubic-bezier(.22,1,.36,1);
+                    a{
+                        width: 100%;
+                        height: 100%;
                         display: flex;
                         align-items: center;
                         justify-content: flex-start;
-                        width: 100%;
-                        height: 100%;
+                    }
+                    &.active-link{
+                        background-color: rgba(var(--rgb-color), 0.1) !important;
                     }
 
-                    svg {
-                        margin-right: 12px;
-                        opacity: 0;
+                    &:hover {
+                        background-color: rgba(var(--rgb-color), 0.1);
+                        div {
+                            svg {
+                                opacity: 1;
+                            }
+                        }
+                    }
+
+                    
+                    div {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        justify-content: flex-end;
+                        align-items: center;
+                        position: relative;
+
+                        a {
+                            position: absolute;
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-start;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        svg {
+                            margin-right: 12px;
+                            opacity: 0;
+                        }
                     }
                 }
             }
@@ -146,6 +197,8 @@ nav{
 }
 .mainPage{
     margin-top: 64px;
+    z-index: 75;
+    background-color: var(--bg-color);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -191,6 +244,9 @@ nav{
                 justify-self: center;
                 align-items: center;
                 transition: all 0.8s cubic-bezier(.22,1,.36,1);
+                @media (max-width: $md-width) {
+                    padding-bottom: 1rem;
+                }
 
             .chat-history {
                 width: 90%;
@@ -374,9 +430,7 @@ nav{
             }
             &-chat{
                 margin-top: 40px;
-                width: 90%;
-                max-width: 736px;
-                padding: 10px;
+                width: fit-content;
                 height: fit-content;
                 position: relative;
                 background-color: rgba(var(--rgb-color), 0.1);
@@ -388,7 +442,7 @@ nav{
                 }
                 .content{
                     height: 104px;
-                    padding: 20px;
+                    padding: 1rem;
                     max-width: $md-width;
                     width: 60dvw;
                     cursor: text;
@@ -397,7 +451,7 @@ nav{
                         width: 80dvw;
                     }
                     textarea{
-                        width: 90%;
+                        width: 100%;
                         height: 100%;
                         background-color: transparent;
                         font: 16px sans-serif;

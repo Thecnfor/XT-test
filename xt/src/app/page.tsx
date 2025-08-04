@@ -241,7 +241,7 @@ export default function Home() {
 
   const helloChat: string = "开始对话";
   return (
-    <div className={`mainPage`}>
+    <>
       <article className={`${activeClass} ${isChatStarted ? 'chat-started' : ''}`}>
         <div className={`container`}>
           {!isChatStarted ? (
@@ -306,6 +306,6 @@ export default function Home() {
           </div>
         </div>
       </article>
-    </div>
+    </>
   );
 }

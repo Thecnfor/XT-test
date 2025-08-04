@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/layout/header";
 import SwitchNav from "@/components/features/switchNav";
-import Providers from '@/components/providers/Providers';
+import Providers from '@/components/layout/Providers';
 import LoadingScreen from '@/components/features/LoadingScreen';
 import Footer from "@/components/layout/footer";
 
@@ -42,7 +42,9 @@ export default function RootLayout({
         <Providers>
           <main>
             <SwitchNav />
+            <div className={`mainPage`}>
             {children}
+            </div>
             <Footer />
           </main>
         </Providers>

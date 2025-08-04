@@ -23,10 +23,10 @@ const CheckNav = () => {
     <StyledShowMore $isVisible={isChecked}>
       <StyledNav>
         <StyledUl key={isChecked ? 'checked' : 'unchecked'}>
-            {Object.entries(navLinks).map(([name, path], index) => (
+            {Object.entries(navLinks).map(([name, link], index) => (
               <StyledLi key={`${name}-${isChecked}`} $index={index}>
                 <StyledLinkContainer>
-                  <StyledLink href={path}>
+                  <StyledLink href={link.path}>
                     {name}
                   </StyledLink>
                 </StyledLinkContainer>
@@ -54,7 +54,7 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
   opacity: ${({ $isVisible }) => $isVisible ? 1 : 0};
   overflow: hidden;
   will-change: height, opacity, transform;
-  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), height 1.2s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: ${({ $isVisible }) => $isVisible ? 'auto' : 'none'};
   backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -66,7 +66,7 @@ const StyledShowMore = styled.div<{ $isVisible: boolean }>`
 const StyledNav = styled.nav`
   height: 100%;
   margin-top: 3rem;
-  margin-left: 1rem;
+  margin-left: 2rem;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -80,7 +80,7 @@ const StyledUl = styled.ul`
   flex-direction: column;
   gap: 1rem;
   justify-content: space-around;
-  padding-top: 2rem;
+  padding-left: 0.3rem;
 `;
 
 const StyledLi = styled.li<{ $index: number }>`
@@ -121,7 +121,7 @@ const StyledLink = styled(Link)`
   color: var(--text-color);
   text-decoration: none;
   position: relative;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
   text-align: center;
   border-radius: 8px;
   width: 100%;

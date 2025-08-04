@@ -42,17 +42,84 @@
     @media (min-width: $md-width) {
         margin-left: 0;
     }
+    @media (max-width: $md-width) {
+        display: none;
+    }
     a{
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 3.5rem;
+        width: 3.8rem;
         height: 2.3rem;
         border-radius: 18px;
-        color: var(--bg-color);
+        color: var(--text-color);
         cursor: pointer;
-        background-color: var(--text-color);
-        font-size: 1rem;
-        font-weight: 600;
+        background-color: rgba(var(--rgb-color), 0.15);
+        font-size: 14px;
+        font-weight: 300;
+    }
+}
+
+.loading-screen{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .loader {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 6rem;
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .loader:before,
+        .loader:after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        animation: pulsOut 1.8s ease-in-out infinite;
+        filter: drop-shadow(0 0 1rem var(--text-color));
+    }
+
+    .loader:before {
+        width: 100%;
+        padding-bottom: 100%;
+        box-shadow: inset 0 0 0 1rem var(--text-color);
+        animation-name: pulsIn;
+    }
+
+    .loader:after {
+        width: calc(100% - 2rem);
+        padding-bottom: calc(100% - 2rem);
+        box-shadow: 0 0 0 0 var(--text-color);
+    }
+
+    @keyframes pulsIn {
+        0% {
+        box-shadow: inset 0 0 0 1rem var(--text-color);
+        opacity: 1;
+        }
+
+        50%, 100% {
+        box-shadow: inset 0 0 0 0 var(--text-color);
+        opacity: 0;
+        }
+    }
+
+    @keyframes pulsOut {
+        0%, 50% {
+        box-shadow: 0 0 0 0 var(--text-color);
+        opacity: 0;
+        }
+
+        100% {
+        box-shadow: 0 0 0 1rem var(--text-color);
+        opacity: 1;
+        }
     }
 }

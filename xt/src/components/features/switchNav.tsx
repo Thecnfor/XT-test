@@ -1,16 +1,28 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import Link from "next/link";
 import { useDispatch } from 'react-redux';
 import { setClass } from '@/store/NavSwitch';
 import navLinks from '@/hooks/docs/links';
+import { usePathname } from 'next/navigation';
+import { NavMore } from './NavMore';
 
 // 链接已统一管理到 @/hooks/docs/links.ts 文件中
 export default function SwitchNav() {
   const dispatch = useDispatch();
   const [isActive, setIsActive] = useState(true);
+  const pathname = usePathname();
+  const [activeLink, setActiveLink] = useState('');
+
+  useEffect(() => {
+    // 找到当前路径对应的链接名称
+    const currentLink = Object.entries(navLinks).find(([_, link]) => link.path === pathname);
+    if (currentLink) {
+      setActiveLink(currentLink[0]);
+    }
+  }, [pathname]);
 
   const handleToggle = () => {
     setIsActive(!isActive);
@@ -49,18 +61,27 @@ export default function SwitchNav() {
     </div>
     <div className='nav'>
       <nav>
-        <ul>
-            {Object.entries(navLinks).map(([name, path]) => (
-              <li key={name}>
-                <div>
-                  <Link href={path}>
-                  {name}
-                  </Link>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
-                </div>
-              </li>
-          ))}
-        </ul>
+        <div>
+          <div className='nav-content overflow-hidden'>
+            <div>
+              <ul className={clsx('nav-home flex-shrink-1 flex-grow min-w-0', { 'nav-home-left': pathname !== '/' })}>
+                  {Object.entries(navLinks).map(([name, link]) => (
+                    <li key={name} className={clsx({ 'active-link': !link.hasSubLinks && name === activeLink })}>
+                      <div className="flex items-center justify-between w-full">
+                        <Link href={link.path} className="block w-full h-full">
+                        {name}
+                        </Link>
+                        {link.hasSubLinks && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
+                        )}
+                      </div>
+                    </li>
+                ))}
+              </ul>
+              <NavMore />
+            </div>
+          </div>
+        </div>
       </nav>
     </div>
   </>
