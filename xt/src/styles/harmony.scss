@@ -16,9 +16,7 @@
 }
 
 header{
-  & {
-    z-index: 100;
-  }
+  z-index: 100;
   width: 100dvw;
   height: 64px;
   position: fixed;
@@ -30,12 +28,12 @@ header{
   justify-content: space-between;
   background-color: var(--bg-color);
   color: var(--text-color);
-  padding-left: $space;
-  padding-right: $space;
-  @media (max-width: $sm-width) {
-    padding-right: 1cap;
-  }
+  padding-left: 1cap;
+  padding-right: 1cap;
   .header-logo{
+    display: flex;
+    align-items: center;
+    justify-content: center;
     a{
       padding-top: 4px;
       display: flex;
@@ -73,23 +71,31 @@ nav{
 
 .nav {
   position: relative;
-  overflow: hidden;
   nav {
     position: absolute;
     width: 200px;
+    @media (max-width: $md-width) {
+      width: 200px;
+    }
     padding-top: 13rem;
     top:0;
     right: 0;
     z-index: 50;
     transition: all 0.8s cubic-bezier(.22,1,.36,1);
-    @media (max-width: $md-width) {
-      left: -80dvw;
-      width: 80dvw;
-      transition: all 0.8s cubic-bezier(.22,1,.36,1);
-    }
     .nav-content {
-      width: 200px;
       position: fixed;
+      .nav-chat{
+        top: calc(-13rem + 64px);
+        width: 100%;
+        height: 100svh;
+        position: absolute;
+        opacity: 1;
+        z-index: 85;
+        background-color: wheat;
+        @media (min-width: $md-width) {
+          display: none;
+        }
+      }
       div{
         position: relative;
         .nav-home{
@@ -105,6 +111,9 @@ nav{
           margin: 8px 12px 0;
           padding-left: 12px;
           height: 38px;
+          min-width: 160px;
+          max-width: calc(100% - 12px);
+          width: 100%;
           align-items: center;
           display: flex;
           border-radius: 10px;
@@ -130,7 +139,7 @@ nav{
         }
       }
       ul{
-        overflow: scroll;
+        overflow: auto;
         width: 200px;
         top: 0;
         .nav-tag{
@@ -210,21 +219,15 @@ nav{
   display: flex;
   flex-direction: column;
   align-items: center;
-  @media (min-width: $md-width) {
-    :has(.chat-started) > &{
-      justify-content: space-around;
-    }
-  }
 
   article {
     max-width: $lg-width;
     width: 100%;
     flex-wrap: wrap;
-    height: 100svh;
-    max-height: $md-width;
-    @media (max-width: $md-width) {
-      height: 100%;
-    }
+    height: calc(100svh - 64px);
+    max-height: 920px;
+    padding-left: 2rem;
+    padding-right: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -232,13 +235,7 @@ nav{
 
     &.chat-started {
       justify-content: flex-end;
-    }
-
-    @media (max-width: $md-width) {
-      transition: all 0.8s cubic-bezier(.22,1,.36,1);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      max-height: calc(100svh - 64px - 3rem);
     }
 
     @media (max-height: 656px)  and (pointer: coarse) {
@@ -246,20 +243,17 @@ nav{
       padding-bottom: 1rem;
     }
     .container{
+      width: 100%;
+      max-width: 768px;
       display: flex;
       margin-bottom: 0;
       flex-direction: column;
       justify-self: center;
       align-items: center;
       transition: all 0.8s cubic-bezier(.22,1,.36,1);
-      @media (max-width: $md-width) {
-        padding-bottom: 1rem;
-      }
 
       .chat-history {
-        width: 90%;
-        max-width: 736px;
-        max-height: 500px;
+        width: 100%;
         overflow-y: auto;
         margin-bottom: 2rem;
         transition: all 0.8s cubic-bezier(.22,1,.36,1);
@@ -284,13 +278,12 @@ nav{
       .message {
         margin-bottom: 16px;
         display: flex;
-        max-width: 100%;
+        width: 100%;
         animation: fadeIn 0.3s ease-in-out;
       }
 
       .user-message {
         justify-content: flex-end;
-        margin-left: auto;
         &::selection{
           background-color: var(--bg-color);
           color: var(--text-color);
@@ -437,8 +430,8 @@ nav{
         }
       }
       &-chat{
-        margin-top: 40px;
-        width: fit-content;
+        margin-top: 1.5rem;
+        width: 100%;
         height: fit-content;
         position: relative;
         background-color: rgba(var(--rgb-color), 0.1);
@@ -451,13 +444,9 @@ nav{
         .content{
           height: 104px;
           padding: 1rem;
-          max-width: $md-width;
-          width: 60dvw;
+          width: 100%;
           cursor: text;
           border-radius: 8px;
-          @media (max-width: $md-width) {
-            width: 80dvw;
-          }
           textarea{
             width: 100%;
             height: 100%;
@@ -510,12 +499,5 @@ nav{
 }
 
 footer{
-  width: calc(100dvw - 200px);
-  position: fixed;
-  text-align: center;
-  right: 0;
-  bottom: 0;
-  @media (max-width: $md-width) {
-    width: 100dvw;
-  }
+  display: none;
 }

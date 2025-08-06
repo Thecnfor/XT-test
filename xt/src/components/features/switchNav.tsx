@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import Link from "next/link";
 import { useDispatch } from 'react-redux';
 import { setClass } from '@/store/NavSwitch';
-import navLinks from '@/hooks/docs/links';
+import navLinks from '@/lib/links';
 import { usePathname } from 'next/navigation';
 import { NavMore } from './NavMore';
 
@@ -28,7 +28,7 @@ export default function SwitchNav() {
     setIsActive(!isActive);
     dispatch(setClass(isActive ? 'highlight' : ''));
     // 设置 CSS 变量 --nav-width
-    document.documentElement.style.setProperty('--nav-width', isActive ? '0' : '200px');
+    document.documentElement.style.setProperty('--nav-width', isActive ? '200px' : '0');
   };
 
   return (
@@ -79,6 +79,9 @@ export default function SwitchNav() {
                 ))}
               </ul>
               <NavMore />
+            </div>
+            <div className='nav-chat'>
+              <ul>123</ul>
             </div>
           </div>
         </div>

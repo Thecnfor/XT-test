@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { Fragment } from 'react';
-import navLinks from '@/hooks/docs/links';
+import navLinks from '@/lib/links';
 import clsx from 'clsx';
 import NavLinks, { CategoryLinks } from '@/types/navLinks';
 

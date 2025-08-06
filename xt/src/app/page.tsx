@@ -6,7 +6,6 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github.css';
-import {DockDemo} from "@/components/features/Docker";
 
 export default function Home() {
   const [inputValue, setInputValue] = useState('');
@@ -243,69 +242,68 @@ export default function Home() {
     <>
       <article className={`${activeClass} ${isChatStarted ? 'chat-started' : ''}`}>
         <div className={`container`}>
-        {!isChatStarted ? (
-        <div className='container-header'>
-          {helloChat}
-        </div>
-        ) : (
-        <div className='chat-history'>
-          {messages.map(message => (
-            <div
-              key={message.id}
-              className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'} ${message.sender === 'ai' && message.content === '' && isAIGenerating ? 'typing' : ''}`}
-            >
-              <div className='message-content'>
-                {message.sender === 'ai' && message.content === '' && isAIGenerating ? (
-                  <div className='typing-indicator'>
-                    <span></span><span></span><span></span>
-                  </div>
-                ) : message.sender === 'ai' ? (
-                  <div className='markdown-content'>
-                    <ReactMarkdown
-                      rehypePlugins={[rehypeRaw, rehypeHighlight]}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  message.content
-                )}
-              </div>
+          {!isChatStarted ? (
+            <div className='container-header'>
+              {helloChat}
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-        )}
-
-        <div className='container-chat'>
-        <div className='content'>
-          <textarea
-            placeholder="请输入内容"
-            value={inputValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          ></textarea>
-        </div>
-        <div className='input'>
-          <button
-            type="button"
-            title="发送"
-            disabled={!inputValue.trim() && !isAIGenerating}
-            onClick={handleSend}
-          >
-            {!isAIGenerating ? (
-              <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 22L16 10M16 10L11 15M16 10L21 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
-              </svg>
             ) : (
-              <div className={'generating'}></div>
+            <div className='chat-history'>
+              {messages.map(message => (
+                <div
+                  key={message.id}
+                  className={`message ${message.sender === 'user' ? 'user-message' : 'ai-message'} ${message.sender === 'ai' && message.content === '' && isAIGenerating ? 'typing' : ''}`}
+                >
+                  <div className='message-content'>
+                    {message.sender === 'ai' && message.content === '' && isAIGenerating ? (
+                      <div className='typing-indicator'>
+                        <span></span><span></span><span></span>
+                      </div>
+                    ) : message.sender === 'ai' ? (
+                      <div className='markdown-content'>
+                        <ReactMarkdown
+                          rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      message.content
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
             )}
-          </button>
-        </div>
-        </div>
-        </div>
-        <div className={'docker-container'}>
-          <DockDemo />
+          <div className='container-chat'>
+            <div className='content'>
+              <textarea
+                placeholder="请输入内容"
+                value={inputValue}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              ></textarea>
+            </div>
+            <div className='input'>
+              <button
+                type="button"
+                title="发送"
+                disabled={!inputValue.trim() && !isAIGenerating}
+                onClick={handleSend}
+              >
+                {!isAIGenerating ? (
+                  <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 22L16 10M16 10L11 15M16 10L21 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
+                  </svg>
+                ) : (
+                  <div className={'generating'}></div>
+                )}
+              </button>
+            </div>
+          </div>
+          <div className='docker-container'>
+            123
+          </div>
         </div>
       </article>
     </>

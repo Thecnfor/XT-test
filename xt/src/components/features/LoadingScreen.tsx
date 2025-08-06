@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, memo } from 'react';
+import { APP_CONFIG } from '@/lib/config';
 
 // 内联样式以确保优先加载
 const styles = {
@@ -78,7 +79,7 @@ const LoadingScreen = () => {
     }
 
     // 确保至少显示2秒
-    const minDisplayTime = 2000;
+    const minDisplayTime = APP_CONFIG.minLoadingDisplayTime;
     const startTime = Date.now();
 
     // 检查关键CSS是否已加载

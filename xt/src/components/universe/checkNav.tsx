@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import navLinks from '@/hooks/docs/links';
+import navLinks from '@/lib/links';
 
 const CheckNav = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -125,7 +125,7 @@ const StyledLiOut = styled.li<{ $index: number }>`
   opacity: 1;
   transform: translateY(0);
   animation: fadeOutUp 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: ${({ $index }) => 0.05 * (7 - $index)}s; /* 8个链接，最大索引为7 */
+  animation-delay: ${({ $index }) => 0.04 * (7 - $index)}s; /* 8个链接，最大索引为7 */
   flex: 1;
   display: flex;
   align-items: center;

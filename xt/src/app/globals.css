@@ -1,14 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-:root{
-  --nav-width: 200px;
+@media (min-width: 768px) {
+  :root{
+    --nav-width: 200px;
+  }
 }
-
 /* 媒体查询：当屏幕宽度≥768px时，导航宽度为0 */
 @media (max-width: 768px) {
   :root {
-    --nav-width: 0 !important;
+    --nav-width: 0;
   }
 }
 
@@ -19,6 +20,7 @@ html, body {
   width: 100%;
   top: 0;
   bottom: 0;
+  overflow: hidden;
 }
 
 main {
@@ -26,6 +28,9 @@ main {
   height: 100%;
   display: grid;
   grid-template-columns: var(--nav-width) 1fr;
+  @media (max-width: 768px) {
+    grid-template-columns: var(--nav-width) 100svw;
+  }
 }
 
 *{

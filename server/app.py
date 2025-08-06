@@ -1,5 +1,6 @@
 # 请先安装所需依赖: pip install fastapi uvicorn openai sse-starlette
 from fastapi import FastAPI, Request
+from config import OPENAI_API_KEY, OPENAI_BASE_URL, SERVER_PORT
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
@@ -19,7 +20,7 @@ app.add_middleware(
 )
 
 # 初始化OpenAI客户端
-client = OpenAI(api_key="sk-lviyraktwurtkislovnzaortehpehojfibfioumhrqbmeqsj", base_url="https://api.siliconflow.cn/v1")
+client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
 
 @app.post("/chat")
 async def chat(request: Request):
@@ -52,4 +53,4 @@ async def chat(request: Request):
     return StreamingResponse(generate(), media_type="text/event-stream")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=SERVER_PORT)
