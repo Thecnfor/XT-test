@@ -275,6 +275,8 @@ nav{
     .container{
       width: 100%;
       max-width: 768px;
+      height: fit-content;
+      max-height: 100%;
       display: flex;
       margin-bottom: 0;
       flex-direction: column;
