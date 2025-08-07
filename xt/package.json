@@ -17,7 +17,10 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@reduxjs/toolkit": "^2.8.2",
     "@tabler/icons-react": "^3.34.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/markdown-it": "^14.1.2",
+    "@types/uuid": "^10.0.0",
+    "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "cobe": "^0.6.4",
     "gsap": "^3.13.0",
@@ -33,7 +36,8 @@
     "rehype-highlight": "^7.0.2",
     "rehype-raw": "^7.0.0",
     "socket.io-client": "^4.8.1",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

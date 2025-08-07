@@ -1,11 +1,9 @@
-# 请先安装所需依赖: pip install fastapi uvicorn openai sse-starlette
-from fastapi import FastAPI, Request
-from config import OPENAI_API_KEY, OPENAI_BASE_URL, SERVER_PORT
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
 import uvicorn
-import asyncio
+from api.auth import router as auth_router
+from api.chat import router as chat_router
+from config import SERVER_PORT
 
 # 创建FastAPI应用
 app = FastAPI()
@@ -19,38 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 初始化OpenAI客户端
-client = OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
+# 注册API路由
+app.include_router(auth_router)
+app.include_router(chat_router)
 
-@app.post("/chat")
-async def chat(request: Request):
-    data = await request.json()
-    messages = data.get("messages", [])
-
-    # 确保messages不为空且包含至少一条消息
-    if not messages:
-        return {"error": "No messages provided"}
-
-    # 创建流式响应生成器
-    async def generate():
-        response = client.chat.completions.create(
-            model="Qwen/Qwen2.5-Coder-7B-Instruct",
-            messages=messages,
-            stream=True
-        )
-
-        for chunk in response:
-            if chunk.choices[0].delta.content is not None:
-                # 以SSE格式发送数据
-                yield f"data: {chunk.choices[0].delta.content}\n\n"
-                # 短暂延迟，避免过快发送
-                await asyncio.sleep(0.05)
-
-        # 发送结束信号
-        yield "data: [DONE]\n\n"
-
-    # 返回流式响应
-    return StreamingResponse(generate(), media_type="text/event-stream")
+# 根路由
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the backend API!"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=SERVER_PORT)

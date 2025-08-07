@@ -38,8 +38,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LoadingScreen />
         <Providers>
+          <LoadingScreen />
           <ResponsiveNavWidthProvider />
           <Header />
           <main>

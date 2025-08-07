@@ -1,5 +1,9 @@
 flask
-requests
+fastapi
+uvicorn
+python-multipart
+pydantic-settings
+bcrypt
 python-dotenv
-flask
-flask-cors
+python-jose[cryptography]
+pymysql

@@ -154,6 +154,22 @@ export default function Home() {
 
       const decoder = new TextDecoder();
       let aiMessageContent = '';
+      let buffer = ''; // 用于累积不完整的行
+
+      // 使用requestAnimationFrame优化UI更新
+      let animationFrameId: number;
+      const updateUI = () => {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        animationFrameId = requestAnimationFrame(() => {
+          setMessages(prevMessages => 
+            prevMessages.map(msg => 
+              msg.id === aiMessageId ? { ...msg, content: aiMessageContent } : msg
+            )
+          );
+        });
+      };
 
       // 循环读取流数据
       try {
@@ -167,10 +183,13 @@ export default function Home() {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          // 分割SSE消息
-          const lines = chunk.split('\n\n');
+          buffer += chunk;
 
-          for (const line of lines) {
+          // 分割SSE消息（处理可能不完整的行）
+          let lineEndIndex;
+          while ((lineEndIndex = buffer.indexOf('\n\n')) !== -1) {
+            const line = buffer.substring(0, lineEndIndex);
+            buffer = buffer.substring(lineEndIndex + 2); // 跳过\n\n
             if (line.startsWith('data: ')) {
               const data = line.substring(6);
               if (data === '[DONE]') {
@@ -179,13 +198,23 @@ export default function Home() {
               }
               // 更新AI消息内容
               aiMessageContent += data;
-              setMessages(prevMessages => 
-                prevMessages.map(msg => 
-                  msg.id === aiMessageId ? { ...msg, content: aiMessageContent } : msg
-                )
-              );
+              updateUI(); // 优化UI更新
             }
           }
+        }
+
+        // 处理剩余的buffer内容（如果有）
+        if (buffer) {
+          const lines = buffer.split('\n\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.substring(6);
+              if (data !== '[DONE]') {
+                aiMessageContent += data;
+              }
+            }
+          }
+          updateUI(); // 确保最后一次更新
         }
       } catch (streamError) {
         // 处理流读取过程中的错误

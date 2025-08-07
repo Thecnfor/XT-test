@@ -3,8 +3,10 @@ import styled from 'styled-components';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setNavWidth } from '@/store/NavSwitch';
+import { usePathname } from 'next/navigation';
 
 const SwitchChat = () => {
+  const pathname = usePathname();
   const dispatch = useDispatch();
   // 假设存在 RootState 类型来表示 store 的状态
   type RootState = {
@@ -25,6 +27,11 @@ const SwitchChat = () => {
     setIsChecked(!isChecked);
     dispatch(setNavWidth(newWidth));
   };
+
+  // 只在根目录显示
+  if (pathname !== '/') {
+    return null;
+  }
 
   return (
     <StyledWrapper>
