@@ -75,7 +75,7 @@ nav{
     position: absolute;
     width: 200px;
     @media (max-width: $md-width) {
-      width: 200px;
+      width: 300px;
     }
     padding-top: 13rem;
     top:0;
@@ -86,7 +86,7 @@ nav{
       position: fixed;
       .nav-chat{
         top: calc(-13rem + 64px);
-        width: 80svw;
+        width: 300px;
         height: 100svh;
         position: absolute;
         opacity: 1;
@@ -100,17 +100,13 @@ nav{
           justify-content: flex-end;
         }
         ul{
-          width: 80svw;
+          width: 300px;
           height: calc(90svh - 64px);
           background-color: var(--bg-color);
         }
       }
-      div.nav-common{
+      div{
         position: relative;
-        @media (max-width: $md-width) {
-          display: none;
-        }
-
         .nav-home{
           position: absolute;
           opacity: 1;
@@ -119,11 +115,11 @@ nav{
           position: absolute;
           width: fit-content;
           height: fit-content;
-          border-radius: 10px;
+          border-radius: 20px;
           top: calc(-24px - 1rem);
-          background-color: rgba(var(--rgb-color), 0.2);
+          background-color: rgba(var(--rgb-color), 0.1);
           &:hover{
-            background-color: rgba(var(--rgb-color), 0.18);
+            background-color: rgba(var(--rgb-color), 0.12);
           }
           padding-left: 0;
           margin-left: 1.2rem;

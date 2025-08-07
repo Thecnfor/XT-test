@@ -13,15 +13,15 @@ const SwitchChat = () => {
     };
   };
   const navWidth = useSelector((state: RootState) => state.nav.navWidth);
-  const [isChecked, setIsChecked] = useState(navWidth === '80svw');
+  const [isChecked, setIsChecked] = useState(navWidth === '300px');
 
   useEffect(() => {
     // 当 navWidth 变化时，更新 isChecked 状态
-    setIsChecked(navWidth === '80svw');
+    setIsChecked(navWidth === '300px');
   }, [navWidth]);
 
   const handleChange = () => {
-    const newWidth = isChecked ? '0' : '80svw';
+    const newWidth = isChecked ? '0' : '300px';
     setIsChecked(!isChecked);
     dispatch(setNavWidth(newWidth));
   };
