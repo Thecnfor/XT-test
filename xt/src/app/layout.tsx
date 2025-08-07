@@ -6,7 +6,7 @@ import SwitchNav from "@/components/features/switchNav";
 import Providers from '@/components/layout/Providers';
 import LoadingScreen from '@/components/features/LoadingScreen';
 import Footer from "@/components/layout/footer";
-import ResponsiveNavWidthProvider from '@/components/layout/ResponsiveNavWidthProvider';
+import ResponsiveNavWidthProvider from '@/hooks/ResponsiveNavWidthProvider';
 
 import "./globals.css";
 import "@/styles/harmony.scss";

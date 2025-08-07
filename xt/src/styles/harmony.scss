@@ -116,13 +116,13 @@ nav{
           width: fit-content;
           height: fit-content;
           border-radius: 20px;
-          top: calc(-24px - 1rem);
+          top: calc(-24px - 2rem);
           background-color: rgba(var(--rgb-color), 0.1);
           &:hover{
             background-color: rgba(var(--rgb-color), 0.12);
           }
           padding-left: 0;
-          margin-left: 1.2rem;
+          margin-left: .8rem;
           a{
             display: flex;
             align-items: center;
