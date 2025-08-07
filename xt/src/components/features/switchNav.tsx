@@ -8,6 +8,7 @@ import { setClass, setNavWidth } from '@/store/NavSwitch';
 import navLinks from '@/lib/links';
 import { usePathname } from 'next/navigation';
 import { NavMore } from './NavMore';
+import AdminButton from './admin';
 
 // 链接已统一管理到 @/hooks/docs/links.ts 文件中
 export default function SwitchNav() {
@@ -92,6 +93,7 @@ export default function SwitchNav() {
             </div>
             <div className='nav-chat'>
               <ul>123</ul>
+              <AdminButton />
             </div>
           </div>
         </div>

@@ -12,6 +12,11 @@ export interface NavLink {
   path: string;
   hasSubLinks: boolean;
   subLinks?: CategoryLinks;
+  /**
+   * 控制导航项是否显示
+   * @default true
+   */
+  show?: boolean;
   [key: string]: CategoryLinks | string | boolean | undefined;
 }
 

@@ -6,16 +6,22 @@ import { setNavWidth } from '@/store/NavSwitch';
 
 const SwitchChat = () => {
   const dispatch = useDispatch();
-  const navWidth = useSelector((state) => state.nav.navWidth);
-  const [isChecked, setIsChecked] = useState(navWidth === '200px');
+  // 假设存在 RootState 类型来表示 store 的状态
+  type RootState = {
+    nav: {
+      navWidth: string;
+    };
+  };
+  const navWidth = useSelector((state: RootState) => state.nav.navWidth);
+  const [isChecked, setIsChecked] = useState(navWidth === '80svw');
 
   useEffect(() => {
     // 当 navWidth 变化时，更新 isChecked 状态
-    setIsChecked(navWidth === '200px');
+    setIsChecked(navWidth === '80svw');
   }, [navWidth]);
 
   const handleChange = () => {
-    const newWidth = isChecked ? '0' : '200px';
+    const newWidth = isChecked ? '0' : '80svw';
     setIsChecked(!isChecked);
     dispatch(setNavWidth(newWidth));
   };

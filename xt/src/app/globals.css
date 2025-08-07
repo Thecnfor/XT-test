@@ -1,18 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@media (min-width: 768px) {
-  :root{
-    --nav-width: 200px;
-  }
-}
-/* 媒体查询：当屏幕宽度≥768px时，导航宽度为0 */
-@media (max-width: 768px) {
-  :root {
-    --nav-width: 0;
-  }
-}
-
 html, body {
   position: absolute;
   background-color: var(--bg-color);

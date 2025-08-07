@@ -86,7 +86,7 @@ nav{
       position: fixed;
       .nav-chat{
         top: calc(-13rem + 64px);
-        width: 100%;
+        width: 80svw;
         height: 100svh;
         position: absolute;
         opacity: 1;
@@ -94,12 +94,18 @@ nav{
         @media (min-width: $md-width) {
           display: none;
         }
+        .admin-button{
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+        }
         ul{
-          height: calc(100svh - 64px);
+          width: 80svw;
+          height: calc(90svh - 64px);
           background-color: var(--bg-color);
         }
       }
-      div{
+      div.nav-common{
         position: relative;
         @media (max-width: $md-width) {
           display: none;
