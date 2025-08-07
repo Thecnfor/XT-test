@@ -6,6 +6,7 @@ import SwitchNav from "@/components/features/switchNav";
 import Providers from '@/components/layout/Providers';
 import LoadingScreen from '@/components/features/LoadingScreen';
 import Footer from "@/components/layout/footer";
+import ResponsiveNavWidthProvider from '@/components/layout/ResponsiveNavWidthProvider';
 
 import "./globals.css";
 import "@/styles/harmony.scss";
@@ -38,8 +39,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LoadingScreen />
-        <Header />
         <Providers>
+          <ResponsiveNavWidthProvider />
+          <Header />
           <main>
             <SwitchNav />
             <div className={`mainPage`}>

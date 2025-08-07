@@ -1,22 +1,27 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setNavWidth } from '@/store/NavSwitch';
 
 const SwitchChat = () => {
-  const [isChecked, setIsChecked] = useState(false);
+  const dispatch = useDispatch();
+  const navWidth = useSelector((state) => state.nav.navWidth);
+  const [isChecked, setIsChecked] = useState(navWidth === '200px');
 
   useEffect(() => {
-    // 更新全局 CSS 变量
-    document.documentElement.style.setProperty('--nav-width', isChecked ? '200px' : '0');
-  }, [isChecked]);
+    // 当 navWidth 变化时，更新 isChecked 状态
+    setIsChecked(navWidth === '200px');
+  }, [navWidth]);
 
   const handleChange = () => {
+    const newWidth = isChecked ? '0' : '200px';
     setIsChecked(!isChecked);
+    dispatch(setNavWidth(newWidth));
   };
 
   return (
     <StyledWrapper>
-      <div className='chat-bg'></div>
       <div>
         <input id="checkbox" type="checkbox" checked={isChecked} onChange={handleChange} />
         <label className="toggle" htmlFor="checkbox">

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import Link from "next/link";
-import { useDispatch } from 'react-redux';
-import { setClass } from '@/store/NavSwitch';
+import { useDispatch, useSelector } from 'react-redux';
+import { setClass, setNavWidth } from '@/store/NavSwitch';
 import navLinks from '@/lib/links';
 import { usePathname } from 'next/navigation';
 import { NavMore } from './NavMore';
@@ -12,7 +12,8 @@ import { NavMore } from './NavMore';
 // 链接已统一管理到 @/hooks/docs/links.ts 文件中
 export default function SwitchNav() {
   const dispatch = useDispatch();
-  const [isActive, setIsActive] = useState(true);
+  const navWidth = useSelector((state) => state.nav.navWidth);
+  const [isActive, setIsActive] = useState(navWidth === '200px');
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState('');
 
@@ -23,12 +24,18 @@ export default function SwitchNav() {
       setActiveLink(currentLink[0]);
     }
   }, [pathname]);
-
+  
+  useEffect(() => {
+    // 当 navWidth 变化时，更新 CSS 变量和 isActive 状态
+    document.documentElement.style.setProperty('--nav-width', navWidth);
+    setIsActive(navWidth === '200px');
+  }, [navWidth]);
+  
   const handleToggle = () => {
+    const newWidth = isActive ? '0' : '200px';
     setIsActive(!isActive);
     dispatch(setClass(isActive ? 'highlight' : ''));
-    // 设置 CSS 变量 --nav-width
-    document.documentElement.style.setProperty('--nav-width', isActive ? '200px' : '0');
+    dispatch(setNavWidth(newWidth));
   };
 
   return (
@@ -65,7 +72,10 @@ export default function SwitchNav() {
           <div className='nav-content overflow-hidden'>
             <div>
               <ul className={clsx('nav-home flex-shrink-1 flex-grow min-w-0', { 'nav-home-left': pathname !== '/' })}>
-                  {Object.entries(navLinks).map(([name, link]) => (
+                  <li className='chat-history'>
+                    <Link href='/chat'>对话历史</Link>
+                  </li>
+                  {Object.entries(navLinks).filter(([_, link]) => link.show !== false).map(([name, link]) => (
                     <li key={name} className={clsx({ 'active-link': !link.hasSubLinks && name === activeLink })}>
                       <div className="flex items-center justify-between w-full">
                         <Link href={link.path} className="block w-full h-full">

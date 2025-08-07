@@ -3,6 +3,7 @@ const navLinks = {
   '日志&笔记': {
     path: '/log',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '日常记录': { path: '/log/daily', hasSubLinks: false },
       '技术笔记': { path: '/log/tech', hasSubLinks: false },
@@ -16,6 +17,7 @@ const navLinks = {
   'AI项目': {
     path: '/ai',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '项目列表': { path: '/ai/projects', hasSubLinks: false },
       '教程': { path: '/ai/tutorials', hasSubLinks: false },
@@ -29,6 +31,7 @@ const navLinks = {
   '树莓派': {
     path: '/raspberry',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '入门指南': { path: '/raspberry/guide', hasSubLinks: false },
       '项目案例': { path: '/raspberry/projects', hasSubLinks: false },
@@ -42,6 +45,7 @@ const navLinks = {
   '云控制': {
     path: '/cloud',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '云服务': { path: '/cloud/services', hasSubLinks: false },
       '自动化脚本': { path: '/cloud/scripts', hasSubLinks: false },
@@ -56,6 +60,7 @@ const navLinks = {
   '视觉思维': {
     path: '/vision',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '思维导图': { path: '/vision/mindmap', hasSubLinks: false },
       '流程图': { path: '/vision/flowchart', hasSubLinks: false },
@@ -70,6 +75,7 @@ const navLinks = {
   '数据': {
     path: '/data',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '数据分析': { path: '/data/analysis', hasSubLinks: false },
       '数据库': { path: '/data/database', hasSubLinks: false },
@@ -84,6 +90,7 @@ const navLinks = {
   '物联网': {
     path: '/iot',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '设备列表': { path: '/iot/devices', hasSubLinks: false },
       '传感器': { path: '/iot/sensors', hasSubLinks: false },
@@ -98,6 +105,7 @@ const navLinks = {
   '机器学习': {
     path: '/ml',
     hasSubLinks: true,
+    show: true,
     subLinks: {
       '算法': { path: '/ml/algorithms', hasSubLinks: false },
       '框架': { path: '/ml/frameworks', hasSubLinks: false },
@@ -110,7 +118,5 @@ const navLinks = {
     }
   },
 };
-
-
 
 export default navLinks;

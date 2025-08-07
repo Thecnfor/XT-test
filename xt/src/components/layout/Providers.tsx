@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 
 const store = configureStore({
   reducer: {
-    navSwitch: navReducer
+    nav: navReducer
   }
 });
 
