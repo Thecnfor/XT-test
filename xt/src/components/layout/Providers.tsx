@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/lib/config';
+import { setCookie, getCookie, deleteCookie } from '@/lib/utils';
 
 // 使用与store/index.ts一致的配置
 import store from '@/store';
@@ -36,14 +37,14 @@ export default function Providers({ children }: { children: ReactNode }) {
   // 更新token和会话ID的方法
   const setAuthToken = useCallback((newToken: string | null, newSessionId?: string) => {
     if (newToken) {
-      localStorage.setItem('token', newToken);
+      setCookie('token', newToken);
       if (newSessionId) {
-        localStorage.setItem('sessionId', newSessionId);
+        setCookie('sessionId', newSessionId);
         setSessionId(newSessionId);
       }
     } else {
-      localStorage.removeItem('token');
-      localStorage.removeItem('sessionId');
+      deleteCookie('token');
+      deleteCookie('sessionId');
       setSessionId(null);
     }
     setToken(newToken);
@@ -66,9 +67,9 @@ export default function Providers({ children }: { children: ReactNode }) {
         console.error('登出请求失败:', error);
       }
     }
-    // 清除本地存储和状态
-    localStorage.removeItem('token');
-    localStorage.removeItem('sessionId');
+    // 清除Cookie和状态
+    deleteCookie('token');
+    deleteCookie('sessionId');
     setToken(null);
     setSessionId(null);
     // 导航到主页
@@ -83,14 +84,14 @@ export default function Providers({ children }: { children: ReactNode }) {
 
     // 避免过于频繁的检查
     const now = Date.now();
-    const lastCheck = Number(localStorage.getItem('lastSessionCheck') || '0');
+    const lastCheck = Number(getCookie('lastSessionCheck') || '0');
     const minCheckInterval = 5000; // 最小检查间隔5秒
 
     if (!forceCheck && now - lastCheck < minCheckInterval) {
       return;
     }
 
-    localStorage.setItem('lastSessionCheck', now.toString());
+    setCookie('lastSessionCheck', now.toString(), 1);
 
     try {
       const controller = new AbortController();
@@ -122,13 +123,13 @@ export default function Providers({ children }: { children: ReactNode }) {
         await clearSession();
       } else {
         // 会话有效，更新会话信息
-        localStorage.setItem('sessionExpiry', (Date.now() + data.remaining_time).toString());
+        setCookie('sessionExpiry', (Date.now() + data.remaining_time * 1000).toString(), 1);
         console.log('会话状态正常，下次检查时间:', new Date(Date.now() + APP_CONFIG.session.checkInterval).toLocaleTimeString());
       }
     } catch (error) {
       console.error('检查会话状态发生异常:', error);
-      // 网络错误时，尝试使用本地存储的过期时间
-      const expiryTime = Number(localStorage.getItem('sessionExpiry') || '0');
+      // 网络错误时，尝试使用Cookie存储的过期时间
+      const expiryTime = Number(getCookie('sessionExpiry') || '0');
       if (expiryTime && now > expiryTime) {
         console.log('本地检测到会话已过期，清除会话');
         await clearSession();
@@ -216,24 +217,15 @@ export default function Providers({ children }: { children: ReactNode }) {
   }, [isAuthenticated, checkSessionStatus]);
 
   useEffect(() => {
-    // 初始化时从本地存储获取令牌和会话ID
-    const storedToken = localStorage.getItem('token');
-    const storedSessionId = localStorage.getItem('sessionId');
+    // 初始化时从Cookie获取令牌和会话ID
+    const storedToken = getCookie('token');
+    const storedSessionId = getCookie('sessionId');
     setToken(storedToken);
     setSessionId(storedSessionId);
     setIsAuthenticated(!!storedToken);
 
-    // 设置监听事件，当令牌或会话ID变化时更新状态
-    const handleStorageChange = () => {
-      const newToken = localStorage.getItem('token');
-      const newSessionId = localStorage.getItem('sessionId');
-      setToken(newToken);
-      setSessionId(newSessionId);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
+    // 清除函数
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       // 清除定时器
       if (checkTimerRef.current) {
         clearInterval(checkTimerRef.current);

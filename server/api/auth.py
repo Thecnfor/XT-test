@@ -87,7 +87,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 # 获取当前用户
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(request: Request):
+    # 从cookie中获取token
+    token = request.cookies.get('token')
+    if not token:
+        # 如果cookie中没有token，尝试从请求头中获取
+        token = request.headers.get('Authorization')
+        if token and token.startswith('Bearer '):
+            token = token[7:]
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="无法验证凭据",
@@ -278,7 +285,7 @@ async def check_session_expiry(validate_request: ValidateSessionRequest, warning
 
 # 强制退出用户所有会话API
 @router.post("/force_logout", response_model=dict)
-async def force_logout(username: str = Depends(get_current_user)):
+async def force_logout(request: Request):
     """强制退出指定用户的所有会话
 
     参数:
@@ -287,10 +294,9 @@ async def force_logout(username: str = Depends(get_current_user)):
     返回:
         包含成功信息和被强制退出的会话数量的字典
     """
-    # 如果没有提供用户名，使用当前用户
-    if not username:
-        current_user = await get_current_user()
-        username = current_user.username
+    # 获取当前用户
+    current_user = await get_current_user(request)
+    username = current_user.username
 
     count = session_service.end_user_sessions(username)
 
