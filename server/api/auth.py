@@ -20,6 +20,9 @@ class LogoutRequest(BaseModel):
 class ValidateSessionRequest(BaseModel):
     session_id: str
 
+class ForceLogoutRequest(BaseModel):
+    username: str
+
 # 会话存储 - 使用JSON文件
 SESSION_FILE = "d:/Xrak/XT-test/server/session.json"
 
@@ -185,6 +188,87 @@ async def logout(logout_request: LogoutRequest):
             detail="无效的会话ID"
         )
 
+# 强制退出用户所有会话API
+@router.post("/force_logout", response_model=dict)
+async def force_logout(username: str = Depends(get_current_user)):
+    """强制退出指定用户的所有会话
+
+    参数:
+        username: 要强制退出的用户名
+
+    返回:
+        包含成功信息和被强制退出的会话数量的字典
+    """
+    # 如果没有提供用户名，使用当前用户
+    if not username:
+        current_user = await get_current_user()
+        username = current_user.username
+
+    # 查找该用户的所有会话
+    user_sessions = [
+        session_id for session_id, session in active_sessions.items()
+        if session["username"] == username
+    ]
+
+    # 结束所有会话
+    for session_id in user_sessions:
+        end_session(session_id)
+
+    return {
+        "message": f"成功强制退出用户 {username} 的所有会话",
+        "session_count": len(user_sessions)
+    }
+
+# 管理员强制退出指定用户所有会话API
+@router.post("/admin/force_logout/{username}", response_model=dict)
+async def admin_force_logout(username: str, current_user: User = Depends(get_current_user)):
+    """管理员强制退出指定用户的所有会话
+
+    参数:
+        username: 要强制退出的用户名
+        current_user: 当前管理员用户
+
+    返回:
+        包含成功信息和被强制退出的会话数量的字典
+    """
+    # 这里可以添加管理员权限检查逻辑
+    # 查找该用户的所有会话
+    user_sessions = [
+        session_id for session_id, session in active_sessions.items()
+        if session["username"] == username
+    ]
+
+    # 结束所有会话
+    for session_id in user_sessions:
+        end_session(session_id)
+
+    return {
+        "message": f"管理员成功强制退出用户 {username} 的所有会话",
+        "session_count": len(user_sessions)
+    }
+
+# 全局强制退出所有用户会话API
+@router.post("/admin/force_logout_all", response_model=dict)
+async def admin_force_logout_all(current_user: User = Depends(get_current_user)):
+    """管理员强制退出所有用户的所有会话
+
+    参数:
+        current_user: 当前管理员用户
+
+    返回:
+        包含成功信息和被强制退出的会话数量的字典
+    """
+    # 这里可以添加管理员权限检查逻辑
+    session_count = len(active_sessions)
+    active_sessions.clear()
+    save_sessions()
+
+    return {
+        "message": f"管理员成功强制退出所有用户的所有会话",
+        "session_count": session_count
+    }
+
+
 
 # 获取活跃会话数量API
 @router.get("/active_sessions", response_model=dict)
@@ -204,12 +288,131 @@ async def validate_session(session_id: str):
     cleanup_expired_sessions()
     if session_id in active_sessions:
         session = active_sessions[session_id]
-        # 延长会话有效期
-        session["expire_time"] = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
         return {
             "valid": True,
             "username": session["username"],
-            "expire_time": session["expire_time"]
+            "expire_time": session["expire_time"],
+            "remaining_minutes": (session["expire_time"] - datetime.utcnow()).total_seconds() / 60
         }
     else:
         return {"valid": False}
+
+# 检查会话过期API
+@router.post("/check_session_expiry", response_model=dict)
+async def check_session_expiry(request: dict):
+    """检查会话是否即将过期
+
+    参数:
+        session_id: 会话ID
+        warning_threshold: 警告阈值(分钟)
+
+    返回:
+        包含会话状态和剩余时间的字典
+    """
+    session_id = request.get("session_id")
+    warning_threshold = request.get("warning_threshold", 5)  # 默认5分钟
+
+    cleanup_expired_sessions()
+    if session_id in active_sessions:
+        session = active_sessions[session_id]
+        remaining_minutes = (session["expire_time"] - datetime.utcnow()).total_seconds() / 60
+        is_about_to_expire = remaining_minutes < warning_threshold
+
+        return {
+            "valid": True,
+            "is_about_to_expire": is_about_to_expire,
+            "remaining_minutes": remaining_minutes,
+            "expire_time": session["expire_time"].isoformat()
+        }
+    else:
+        return {
+            "valid": False,
+            "message": "无效的会话ID"
+        }
+
+# 刷新会话有效期API
+@router.post("/refresh_session", response_model=dict)
+async def refresh_session(session_id: str):
+    """刷新会话有效期
+
+    参数:
+        session_id: 会话ID
+
+    返回:
+        包含成功信息和新过期时间的字典
+    """
+    cleanup_expired_sessions()
+    if session_id in active_sessions:
+        session = active_sessions[session_id]
+        # 更新过期时间
+        new_expire_time = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
+        session["expire_time"] = new_expire_time
+        save_sessions()
+        return {
+            "success": True,
+            "message": "会话已成功刷新",
+            "new_expire_time": new_expire_time.isoformat()
+        }
+    else:
+        return {
+            "success": False,
+            "message": "无效的会话ID"
+        }
+
+@router.post("/refresh_session", response_model=dict)
+async def refresh_session(session_id: str):
+    """刷新会话有效期
+
+    参数:
+        session_id: 要刷新的会话ID
+
+    返回:
+        包含刷新结果和新过期时间的字典
+    """
+    cleanup_expired_sessions()
+    if session_id in active_sessions:
+        session = active_sessions[session_id]
+        # 延长会话有效期
+        new_expire_time = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
+        session["expire_time"] = new_expire_time
+        save_sessions()  # 保存更新后的会话
+        return {
+            "success": True,
+            "message": "会话已刷新",
+            "new_expire_time": new_expire_time,
+            "expire_in_minutes": SESSION_EXPIRE_MINUTES
+        }
+    else:
+        return {
+            "success": False,
+            "message": "无效的会话ID"
+        }
+
+# 检查会话是否即将过期API
+@router.post("/check_session_expiry", response_model=dict)
+async def check_session_expiry(session_id: str, warning_threshold: int = 5):
+    """检查会话是否即将过期
+
+    参数:
+        session_id: 要检查的会话ID
+        warning_threshold: 警告阈值(分钟)，默认5分钟
+
+    返回:
+        包含检查结果和剩余时间的字典
+    """
+    cleanup_expired_sessions()
+    if session_id in active_sessions:
+        session = active_sessions[session_id]
+        remaining_minutes = (session["expire_time"] - datetime.utcnow()).total_seconds() / 60
+        is_about_to_expire = remaining_minutes < warning_threshold
+        return {
+            "valid": True,
+            "remaining_minutes": remaining_minutes,
+            "is_about_to_expire": is_about_to_expire,
+            "warning_threshold": warning_threshold
+        }
+    else:
+        return {
+            "valid": False,
+            "message": "无效的会话ID"
+        }
