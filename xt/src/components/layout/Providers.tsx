@@ -1,8 +1,9 @@
 'use client';
 import { Provider } from 'react-redux';
-import { APP_CONFIG } from '@/lib/config';
 import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { APP_CONFIG } from '@/lib/config';
 
 // 使用与store/index.ts一致的配置
 import store from '@/store';
@@ -29,6 +30,8 @@ export default function Providers({ children }: { children: ReactNode }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const checkTimerRef = useRef<number | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   // 更新token和会话ID的方法
   const setAuthToken = useCallback((newToken: string | null, newSessionId?: string) => {
@@ -68,39 +71,74 @@ export default function Providers({ children }: { children: ReactNode }) {
     localStorage.removeItem('sessionId');
     setToken(null);
     setSessionId(null);
+    // 导航到主页
+    router.push('/');
   }, [sessionId]);
 
   // 检查会话状态的方法
-    const checkSessionStatus = useCallback(async () => {
+  const checkSessionStatus = useCallback(async (forceCheck = false) => {
     if (!sessionId) {
       return;
     }
 
+    // 避免过于频繁的检查
+    const now = Date.now();
+    const lastCheck = Number(localStorage.getItem('lastSessionCheck') || '0');
+    const minCheckInterval = 5000; // 最小检查间隔5秒
+
+    if (!forceCheck && now - lastCheck < minCheckInterval) {
+      return;
+    }
+
+    localStorage.setItem('lastSessionCheck', now.toString());
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.session.checkTimeout); // 使用配置中的超时时间
+
       const response = await fetch('http://localhost:8000/auth/check_session_expiry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ session_id: sessionId }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         console.error('检查会话状态请求失败:', response.statusText);
-        await clearSession();
+        // 仅在非401错误时清除会话，避免循环登出
+        if (response.status !== 401) {
+          await clearSession();
+        }
         return;
       }
 
       const data = await response.json();
-    if (!data.valid) {
-      console.log('会话已过期或无效，清除会话');
-      await clearSession();
-    } else {
-      console.log('会话状态正常，下次检查时间:', new Date(Date.now() + APP_CONFIG.session.checkInterval).toLocaleTimeString());
-    }
+      if (!data.valid) {
+        console.log('会话已过期或无效，清除会话');
+        await clearSession();
+      } else {
+        // 会话有效，更新会话信息
+        localStorage.setItem('sessionExpiry', (Date.now() + data.remaining_time).toString());
+        console.log('会话状态正常，下次检查时间:', new Date(Date.now() + APP_CONFIG.session.checkInterval).toLocaleTimeString());
+      }
     } catch (error) {
       console.error('检查会话状态发生异常:', error);
-      // 发生异常时，不立即清除会话，而是等待下次检查
+      // 网络错误时，尝试使用本地存储的过期时间
+      const expiryTime = Number(localStorage.getItem('sessionExpiry') || '0');
+      if (expiryTime && now > expiryTime) {
+        console.log('本地检测到会话已过期，清除会话');
+        await clearSession();
+      } else if (error.name === 'AbortError') {
+        console.warn('会话检查请求超时');
+        // 超时不立即清除会话，避免误判
+      } else {
+        // 其他错误，保守处理
+        await clearSession();
+      }
     }
   }, [sessionId, clearSession]);
 
@@ -147,6 +185,24 @@ export default function Providers({ children }: { children: ReactNode }) {
       // 然后每5分钟检查一次
       checkTimerRef.current = window.setInterval(checkSessionStatus, APP_CONFIG.session.checkInterval); // 使用配置文件中的检查间隔
       console.log('会话状态检查定时器已启动');
+
+      // 添加窗口聚焦时的检查
+      const handleFocus = () => {
+        console.log('窗口聚焦，检查会话状态');
+        checkSessionStatus(true); // 强制检查
+      };
+
+      window.addEventListener('focus', handleFocus);
+
+      // 清除事件监听
+      return () => {
+        if (checkTimerRef.current) {
+          window.clearInterval(checkTimerRef.current);
+          checkTimerRef.current = null;
+          console.log('会话状态检查定时器已清除');
+        }
+        window.removeEventListener('focus', handleFocus);
+      };
     }
 
     // 清除定时器
@@ -190,6 +246,14 @@ export default function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsAuthenticated(!!token);
   }, [token]);
+
+  // 路由变化时检查会话状态
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('路由变化，检查会话状态');
+      checkSessionStatus(true); // 强制检查
+    }
+  }, [pathname, isAuthenticated, checkSessionStatus]);
 
   // 认证状态已通过useState管理，无需重复计算
 

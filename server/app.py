@@ -20,6 +20,12 @@ server_thread = None
 async def cleanup():
     # 在这里添加清理逻辑，如关闭数据库连接等
     print("正在进行清理工作...")
+    # 清除所有会话
+    from services.session_service import SessionService
+    from config import SESSION_FILE, SESSION_EXPIRE_MINUTES
+    session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
+    session_service.clear_all_sessions()
+    print("已清除所有会话")
     await asyncio.sleep(1)  # 模拟清理工作
     print("清理完成，应用已退出。")
 

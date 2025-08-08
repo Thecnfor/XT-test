@@ -9,5 +9,7 @@ export const APP_CONFIG = {
     checkInterval: 300000, // 5分钟
     // 会话即将过期的警告阈值（分钟）
     expiryWarningThreshold: 5,
+    // 会话检查请求超时时间（毫秒）
+    checkTimeout: 500, // 0.5秒
   },
 };
