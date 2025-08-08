@@ -3,6 +3,12 @@ import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcrypt';
 
+// 定义用户数据结构
+interface User {
+  username: string;
+  password: string;
+}
+
 // 定义注册请求的数据结构
 interface RegisterRequest {
   username: string;
@@ -31,7 +37,7 @@ export async function POST(req: NextRequest) {
     const config = JSON.parse(configData);
 
     // 检查用户是否已存在
-    const userExists = config.users.some((user: any) => user.username === username);
+    const userExists = config.users.some((user: User) => user.username === username);
     if (userExists) {
       return NextResponse.json(
         { error: '用户名已存在' },

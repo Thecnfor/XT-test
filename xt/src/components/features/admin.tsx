@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link";
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { AuthContext } from '@/components/layout/Providers';
 import { setNavWidth } from '@/store/NavSwitch';
@@ -9,12 +9,16 @@ import { usePathname } from 'next/navigation';
 
 export default function AdminButton() {
     const pathname = usePathname();
-    // 确保在客户端执行
     const { isAuthenticated } = useContext(AuthContext);
+    const [authState, setAuthState] = useState(isAuthenticated);
     const dispatch = useDispatch();
 
+    // 监听认证状态变化
+    useEffect(() => {
+        setAuthState(isAuthenticated);
+    }, [isAuthenticated]);
+
     const handleLinkClick = () => {
-        // 设置导航宽度为0
         dispatch(setNavWidth('0'));
     };
 
@@ -25,7 +29,7 @@ export default function AdminButton() {
 
     return (
         <>
-        {isAuthenticated ? (
+        {authState ? (
             <div className="admin-button">
                 <Link href="/admin" onClick={handleLinkClick}>管理员</Link>
             </div>

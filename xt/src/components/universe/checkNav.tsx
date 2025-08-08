@@ -24,7 +24,7 @@ const CheckNav = () => {
     <StyledShowMore $isVisible={isChecked}>
       <StyledNav>
         <StyledUl key={isChecked ? 'checked' : 'unchecked'}>
-            {Object.entries(navLinks).filter(([_, link]) => link.show !== false).map(([name, link], index) => (
+            {Object.entries(navLinks).filter(([ , link]) => link.show !== false).map(([name, link], index) => (
               isChecked ? (
                 <StyledLiIn key={`${name}-${isChecked}`} $index={index}>
                   <StyledLinkContainer>

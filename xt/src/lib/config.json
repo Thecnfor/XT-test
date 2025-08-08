@@ -1,0 +1,6 @@
+{
+  "session": {
+    "expiryWarningThreshold": 5,
+    "checkInterval": 60000
+  }
+}

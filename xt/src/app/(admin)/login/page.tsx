@@ -3,6 +3,26 @@ import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/layout/Providers';
 
+// 过滤特殊字符的函数
+const sanitizeInput = (input: string): string => {
+  // 移除所有HTML标签和危险字符
+  return input
+    .replace(/<[^>]*>/g, '') // 移除HTML标签
+    .replace(/[&<>"'`;(){}[\]\/]/g, ''); // 移除特殊字符
+};
+
+// 验证输入是否安全
+const isValidInput = (input: string): boolean => {
+  // 检查是否包含危险字符或脚本
+  const dangerousPatterns = [
+    /<script.*?>.*?<\/script>/gi,
+    /on[a-zA-Z]+\s*=/, // 事件处理器
+    /javascript:/gi,
+    /data:/gi
+  ];
+
+  return !dangerousPatterns.some(pattern => pattern.test(input));
+};
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -20,15 +40,26 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    try {
-      // 调用后端登录API - 使用application/x-www-form-urlencoded格式
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
+    // 过滤和验证输入
+    const sanitizedUsername = sanitizeInput(username);
+    const sanitizedPassword = sanitizeInput(password);
 
+    if (!isValidInput(sanitizedUsername) || !isValidInput(sanitizedPassword)) {
+      setError('输入包含不安全字符，请重新输入');
+      return;
+    }
+
+    try {
+      // 调用后端登录API - 使用JSON格式
       const response = await fetch('http://localhost:8000/auth/token', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: sanitizedUsername,
+          password: sanitizedPassword,
+        }),
       });
 
       const data = await response.json();
@@ -58,6 +89,16 @@ export default function LoginPage() {
       return;
     }
 
+    // 过滤和验证输入
+    const sanitizedUsername = sanitizeInput(registerUsername);
+    const sanitizedPassword = sanitizeInput(registerPassword);
+    const sanitizedConfirmPassword = sanitizeInput(registerConfirmPassword);
+
+    if (!isValidInput(sanitizedUsername) || !isValidInput(sanitizedPassword)) {
+      setRegisterError('输入包含不安全字符，请重新输入');
+      return;
+    }
+
     try {
       // 发送注册请求到后端API
       const response = await fetch('http://localhost:8000/auth/register', {
@@ -66,8 +107,8 @@ export default function LoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: registerUsername,
-          password: registerPassword,
+          username: sanitizedUsername,
+          password: sanitizedPassword,
         }),
       });
 

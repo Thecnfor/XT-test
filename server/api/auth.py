@@ -1,8 +1,13 @@
 import json
 import os
 import uuid
+import html
+import re
+import json
+import threading
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
+import time
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -12,6 +17,26 @@ from pydantic import BaseModel
 from schemas.user import User, RegisterRequest, LoginRequest
 from services.database_service import add_user, verify_user, get_user
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES
+# 会话不活动超时时间（分钟）
+SESSION_INACTIVITY_TIMEOUT = 15
+
+# 验证输入是否安全
+def is_safe_input(input_str: str) -> bool:
+    """验证输入是否安全，不包含危险字符或脚本"""
+    if not input_str:
+        return False
+    # 检查是否包含危险字符或脚本
+    dangerous_patterns = [
+        r'<script.*?>.*?</script>',
+        r'on[a-zA-Z]+\s*=',  # 事件处理器
+        r'javascript:',
+        r'data:'
+    ]
+    for pattern in dangerous_patterns:
+        if re.search(pattern, input_str, re.IGNORECASE):
+            return False
+    return True
+
 
 # 会话相关请求模型
 class LogoutRequest(BaseModel):
@@ -61,18 +86,66 @@ def save_sessions():
     with open(SESSION_FILE, 'w') as f:
         json.dump(sessions_data, f, indent=2)
 
-def create_session(username: str) -> str:
-    """创建新会话并返回会话ID"""
-    session_id = str(uuid.uuid4())
-    expire_time = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
-    active_sessions[session_id] = {
-        "username": username,
-        "expire_time": expire_time,
-        "created_at": datetime.utcnow()
-    }
-    save_sessions()  # 保存到文件
-    return session_id
+import bcrypt
+import time
 
+def create_session(username: str) -> str:
+    """创建新会话并返回会话ID，使用UUID+哈希方案"""
+    try:
+        # 使用UUID生成唯一会话ID
+        session_id = str(uuid.uuid4())
+        current_time = datetime.utcnow()
+        expire_time = current_time + timedelta(minutes=SESSION_EXPIRE_MINUTES)
+        
+        # 生成随机盐和会话密钥用于验证
+        salt = bcrypt.gensalt()
+        session_key = bcrypt.hashpw(f"{username}:{session_id}".encode('utf-8'), salt).decode('utf-8')
+        
+        active_sessions[session_id] = {
+            "username": username,
+            "expire_time": expire_time,
+            "created_at": current_time,
+            "last_activity": current_time,
+            "session_key": session_key,
+            "salt": salt.decode('utf-8')
+        }
+        save_sessions()  # 保存到文件
+        print(f"会话创建成功: UUID={session_id}, 用户名: {username}")
+        print(f"会话密钥: {session_key}")
+        return session_id
+    except Exception as e:
+        print(f"会话创建失败: {str(e)}")
+        raise
+
+
+def verify_session(session_id: str) -> bool:
+    """验证会话ID的有效性"""
+    try:
+        if session_id not in active_sessions:
+            print(f"会话不存在: {session_id}")
+            return False
+        
+        session = active_sessions[session_id]
+        # 检查会话是否过期
+        if session['expire_time'] < datetime.utcnow():
+            end_session(session_id)  # 删除过期会话
+            print(f"会话已过期: {session_id}")
+            return False
+        
+        # 检查会话是否长时间不活动
+        if session['last_activity'] + timedelta(minutes=SESSION_INACTIVITY_TIMEOUT) < datetime.utcnow():
+            end_session(session_id)  # 删除长时间不活动的会话
+            print(f"会话长时间不活动已过期: {session_id}")
+            return False
+        
+        # 更新最后活动时间
+        session['last_activity'] = datetime.utcnow()
+        active_sessions[session_id] = session
+        save_sessions()
+        return True
+    except (KeyError, ValueError) as e:
+        print(f"会话验证异常: {str(e)}, 会话ID: {session_id}")
+        return False
 
 def end_session(session_id: str) -> bool:
     """结束会话"""
@@ -84,16 +157,19 @@ def end_session(session_id: str) -> bool:
 
 
 def cleanup_expired_sessions():
-    """清理过期会话"""
+    """清理过期会话和长时间不活动的会话"""
     current_time = datetime.utcnow()
+    inactivity_timeout = timedelta(minutes=SESSION_INACTIVITY_TIMEOUT)
     expired_sessions = [
         session_id for session_id, session in active_sessions.items()
-        if session["expire_time"] < current_time
+        if session["expire_time"] < current_time or 
+           ("last_activity" in session and session["last_activity"] + inactivity_timeout < current_time)
     ]
     for session_id in expired_sessions:
         del active_sessions[session_id]
     if expired_sessions:
         save_sessions()  # 如果有删除操作，保存到文件
+        print(f"已清理 {len(expired_sessions)} 个过期或不活动的会话")
 
 # 初始化加载会话
 def initialize_sessions():
@@ -103,6 +179,22 @@ def initialize_sessions():
 
 # 初始化会话
 initialize_sessions()
+
+# 定期清理过期会话的线程函数
+def session_cleanup_worker():
+    """后台线程函数，定期清理过期会话"""
+    while True:
+        cleanup_expired_sessions()
+        time.sleep(1800)  # 每30分钟清理一次
+
+# 启动会话清理线程
+def start_session_cleanup_thread():
+    cleanup_thread = threading.Thread(target=session_cleanup_worker, daemon=True)
+    cleanup_thread.start()
+    print("会话清理线程已启动")
+
+# 启动会话清理线程
+start_session_cleanup_thread()
 
 # 已合并到上方导入
 
@@ -149,8 +241,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # 用户注册API
 @router.post("/register", response_model=dict)
 async def register(user: RegisterRequest):
-    if add_user(user.username, user.password):
-        return {"message": "注册成功", "username": user.username}
+    # 验证输入是否安全
+    if not is_safe_input(user.username) or not is_safe_input(user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="输入包含不安全字符",
+        )
+
+    # 转义输入，防止XSS攻击
+    username = html.escape(user.username)
+    password = html.escape(user.password)
+
+    if add_user(username, password):
+        return {"message": "注册成功", "username": username}
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -159,8 +262,19 @@ async def register(user: RegisterRequest):
 
 # 用户登录API - 获取令牌和会话ID
 @router.post("/token", response_model=dict)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    if not verify_user(form_data.username, form_data.password):
+async def login(login_request: LoginRequest):
+    # 验证输入是否安全
+    if not is_safe_input(login_request.username) or not is_safe_input(login_request.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="输入包含不安全字符",
+        )
+
+    # 转义输入，防止XSS攻击
+    username = html.escape(login_request.username)
+    password = html.escape(login_request.password)
+
+    if not verify_user(username, password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
@@ -168,10 +282,18 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": form_data.username}, expires_delta=access_token_expires
+        data={"sub": username}, expires_delta=access_token_expires
     )
     # 创建会话
-    session_id = create_session(form_data.username)
+    session_id = create_session(username)
+    
+    # 验证会话ID
+    if not verify_session(session_id):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="会话创建失败，请重试",
+        )
+    
     return {"access_token": access_token, "token_type": "bearer", "session_id": session_id}
 
 
@@ -179,6 +301,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.post("/logout", response_model=dict)
 async def logout(logout_request: LogoutRequest):
     session_id = logout_request.session_id
+    
+    # 验证会话ID
+    if not verify_session(session_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="无效的会话ID"
+        )
+    
     success = end_session(session_id)
     if success:
         return {"message": "登出成功", "session_id": session_id}
@@ -187,6 +317,66 @@ async def logout(logout_request: LogoutRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="无效的会话ID"
         )
+
+# 验证会话API
+@router.post("/validate_session", response_model=dict)
+async def validate_session(validate_request: ValidateSessionRequest):
+    session_id = validate_request.session_id
+    is_valid = verify_session(session_id)
+    if is_valid:
+        session = active_sessions[session_id]
+        return {
+            "valid": True,
+            "username": session["username"],
+            "expire_time": session["expire_time"].isoformat()
+        }
+    else:
+        return {"valid": False}
+
+# 刷新会话API
+@router.post("/refresh_session", response_model=dict)
+async def refresh_session(validate_request: ValidateSessionRequest):
+    session_id = validate_request.session_id
+    
+    # 验证会话ID
+    if not verify_session(session_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="无效的会话ID"
+        )
+    
+    # 更新会话过期时间
+    session = active_sessions[session_id]
+    session['expire_time'] = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
+    save_sessions()  # 保存到文件
+    
+    return {
+        "success": True,
+        "new_expire_time": session['expire_time'].isoformat()
+    }
+
+# 检查会话过期API
+@router.post("/check_session_expiry", response_model=dict)
+async def check_session_expiry(validate_request: ValidateSessionRequest, warning_threshold: int = 5):
+    session_id = validate_request.session_id
+    
+    # 验证会话ID
+    is_valid = verify_session(session_id)
+    if not is_valid:
+        return {
+            "valid": False,
+            "message": "无效的会话ID"
+        }
+    
+    session = active_sessions[session_id]
+    remaining_time = session['expire_time'] - datetime.utcnow()
+    remaining_minutes = remaining_time.total_seconds() / 60
+    
+    return {
+        "valid": True,
+        "remaining_minutes": remaining_minutes,
+        "is_about_to_expire": remaining_minutes < warning_threshold
+    }
 
 # 强制退出用户所有会话API
 @router.post("/force_logout", response_model=dict)
@@ -281,138 +471,4 @@ async def get_active_sessions():
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
-
-# 验证会话有效性API
-@router.post("/validate_session", response_model=dict)
-async def validate_session(session_id: str):
-    cleanup_expired_sessions()
-    if session_id in active_sessions:
-        session = active_sessions[session_id]
-        return {
-            "valid": True,
-            "username": session["username"],
-            "expire_time": session["expire_time"],
-            "remaining_minutes": (session["expire_time"] - datetime.utcnow()).total_seconds() / 60
-        }
-    else:
-        return {"valid": False}
-
-# 检查会话过期API
-@router.post("/check_session_expiry", response_model=dict)
-async def check_session_expiry(request: dict):
-    """检查会话是否即将过期
-
-    参数:
-        session_id: 会话ID
-        warning_threshold: 警告阈值(分钟)
-
-    返回:
-        包含会话状态和剩余时间的字典
-    """
-    session_id = request.get("session_id")
-    warning_threshold = request.get("warning_threshold", 5)  # 默认5分钟
-
-    cleanup_expired_sessions()
-    if session_id in active_sessions:
-        session = active_sessions[session_id]
-        remaining_minutes = (session["expire_time"] - datetime.utcnow()).total_seconds() / 60
-        is_about_to_expire = remaining_minutes < warning_threshold
-
-        return {
-            "valid": True,
-            "is_about_to_expire": is_about_to_expire,
-            "remaining_minutes": remaining_minutes,
-            "expire_time": session["expire_time"].isoformat()
-        }
-    else:
-        return {
-            "valid": False,
-            "message": "无效的会话ID"
-        }
-
-# 刷新会话有效期API
-@router.post("/refresh_session", response_model=dict)
-async def refresh_session(session_id: str):
-    """刷新会话有效期
-
-    参数:
-        session_id: 会话ID
-
-    返回:
-        包含成功信息和新过期时间的字典
-    """
-    cleanup_expired_sessions()
-    if session_id in active_sessions:
-        session = active_sessions[session_id]
-        # 更新过期时间
-        new_expire_time = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
-        session["expire_time"] = new_expire_time
-        save_sessions()
-        return {
-            "success": True,
-            "message": "会话已成功刷新",
-            "new_expire_time": new_expire_time.isoformat()
-        }
-    else:
-        return {
-            "success": False,
-            "message": "无效的会话ID"
-        }
-
-@router.post("/refresh_session", response_model=dict)
-async def refresh_session(session_id: str):
-    """刷新会话有效期
-
-    参数:
-        session_id: 要刷新的会话ID
-
-    返回:
-        包含刷新结果和新过期时间的字典
-    """
-    cleanup_expired_sessions()
-    if session_id in active_sessions:
-        session = active_sessions[session_id]
-        # 延长会话有效期
-        new_expire_time = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
-        session["expire_time"] = new_expire_time
-        save_sessions()  # 保存更新后的会话
-        return {
-            "success": True,
-            "message": "会话已刷新",
-            "new_expire_time": new_expire_time,
-            "expire_in_minutes": SESSION_EXPIRE_MINUTES
-        }
-    else:
-        return {
-            "success": False,
-            "message": "无效的会话ID"
-        }
-
-# 检查会话是否即将过期API
-@router.post("/check_session_expiry", response_model=dict)
-async def check_session_expiry(session_id: str, warning_threshold: int = 5):
-    """检查会话是否即将过期
-
-    参数:
-        session_id: 要检查的会话ID
-        warning_threshold: 警告阈值(分钟)，默认5分钟
-
-    返回:
-        包含检查结果和剩余时间的字典
-    """
-    cleanup_expired_sessions()
-    if session_id in active_sessions:
-        session = active_sessions[session_id]
-        remaining_minutes = (session["expire_time"] - datetime.utcnow()).total_seconds() / 60
-        is_about_to_expire = remaining_minutes < warning_threshold
-        return {
-            "valid": True,
-            "remaining_minutes": remaining_minutes,
-            "is_about_to_expire": is_about_to_expire,
-            "warning_threshold": warning_threshold
-        }
-    else:
-        return {
-            "valid": False,
-            "message": "无效的会话ID"
-        }
+# 已移除重复的路由定义

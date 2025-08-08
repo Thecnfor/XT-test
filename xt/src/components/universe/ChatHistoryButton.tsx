@@ -8,13 +8,15 @@ import { usePathname } from 'next/navigation';
 const SwitchChat = () => {
   const pathname = usePathname();
   const dispatch = useDispatch();
-  // 假设存在 RootState 类型来表示 store 的状态
+  // 正确的 RootState 类型
   type RootState = {
-    nav: {
+    navSwitch: {
       navWidth: string;
     };
   };
-  const navWidth = useSelector((state: RootState) => state.nav.navWidth);
+  // 添加安全检查，确保state.navSwitch已定义
+  const navState = useSelector((state: RootState) => state.navSwitch);
+  const navWidth = navState?.navWidth || '200px';
   const [isChecked, setIsChecked] = useState(navWidth === '300px');
 
   useEffect(() => {

@@ -25,7 +25,7 @@ export function NavMore() {
                     <svg className="w-[15px] md:w-[11px]" width="10" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.245636 8.59302C-0.0818787 8.2655 -0.0818787 7.7345 0.245636 7.40698L4.43892 3.2137C4.76643 2.88619 5.29744 2.88619 5.62495 3.2137C5.95247 3.54122 5.95247 4.07223 5.62495 4.39974L2.86335 7.16134H10.9025C11.3657 7.16134 11.7412 7.53682 11.7412 8C11.7412 8.46318 11.3657 8.83866 10.9025 8.83866H2.86335L5.62495 11.6003C5.95247 11.9278 5.95247 12.4588 5.62495 12.7863C5.29744 13.1138 4.76643 13.1138 4.43892 12.7863L0.245636 8.59302Z" fill="currentColor"></path></svg>
                 <span>首页</span>
             </Link>
-            {Object.entries(typedNavLinks).filter(([_, link]) => link.show !== false).map(([name, link]) => {
+            {Object.entries(typedNavLinks).filter(([ , link]) => link.show !== false).map(([name, link]) => {
                 const className = `nav-${link.path.substring(1)}`;
                 // 检查当前路径是否与链接路径匹配，包括子路径
                 const isActive = pathname === link.path || pathname.startsWith(`${link.path}/`);

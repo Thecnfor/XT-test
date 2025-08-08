@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import Link from "next/link";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useAppSelector } from '@/store';
 import { setClass, setNavWidth } from '@/store/NavSwitch';
 import navLinks from '@/lib/links';
 import { usePathname } from 'next/navigation';
@@ -13,14 +14,16 @@ import AdminButton from './admin';
 // 链接已统一管理到 @/hooks/docs/links.ts 文件中
 export default function SwitchNav() {
   const dispatch = useDispatch();
-  const navWidth = useSelector((state) => state.nav.navWidth);
+  // 添加安全检查，确保state.navSwitch已定义
+  const navState = useAppSelector((state) => state.navSwitch);
+  const navWidth = navState?.navWidth || '200px';
   const [isActive, setIsActive] = useState(navWidth === '200px');
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState('');
 
   useEffect(() => {
     // 找到当前路径对应的链接名称
-    const currentLink = Object.entries(navLinks).find(([_, link]) => link.path === pathname);
+    const currentLink = Object.entries(navLinks).find(([ , link]) => link.path === pathname);
     if (currentLink) {
       setActiveLink(currentLink[0]);
     }
@@ -76,7 +79,7 @@ export default function SwitchNav() {
                   <li className='chat-history'>
                     <Link href='/chat'>对话历史</Link>
                   </li>
-                  {Object.entries(navLinks).filter(([_, link]) => link.show !== false).map(([name, link]) => (
+                  {Object.entries(navLinks).filter(([ , link]) => link.show !== false).map(([name, link]) => (
                     <li key={name} className={clsx({ 'active-link': !link.hasSubLinks && name === activeLink })}>
                       <div className="flex items-center justify-between w-full">
                         <Link href={link.path} className="block w-full h-full">

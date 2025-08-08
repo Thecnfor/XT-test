@@ -1,61 +1,60 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
-export function authMiddleware(req: NextRequest) {
+export async function authMiddleware(req: NextRequest) {
   // 从请求头获取token
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-  // 从cookie获取sessionId
-  const cookieStore = cookies();
-  const sessionId = cookieStore.get('sessionId')?.value;
 
-  // 公共路径不需要认证
-  const publicPaths = ['/login', '/register', '/api/auth/register', '/api/auth/token'];
-  const isPublicPath = publicPaths.some(path => req.nextUrl.pathname.startsWith(path));
+  // 获取cookies
+  const cookieStore = await cookies();
+    const sessionId = cookieStore.get('sessionId')?.value;
 
-  if (isPublicPath) {
-    return NextResponse.next();
-  }
+    // 公共路径不需要认证
+    const publicPaths = ['/login', '/register', '/api/auth/register', '/api/auth/token'];
+    const isPublicPath = publicPaths.some(path => req.nextUrl.pathname.startsWith(path));
 
-  // 检查认证状态
-  if (!token || !sessionId) {
-    // 未认证，重定向到登录页
-    const loginUrl = new URL('/login', req.url);
-    loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // 验证会话有效性
-  async function validateSession() {
-    try {
-      const response = await fetch('http://localhost:8000/auth/validate_session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ session_id: sessionId })
-      });
-
-      const data = await response.json();
-      return data.valid;
-    } catch (error) {
-      console.error('会话验证失败:', error);
-      return false;
+    if (isPublicPath) {
+      return NextResponse.next();
     }
-  }
 
-  // 使用Promise处理异步验证
-  return new Promise<NextResponse>(async (resolve) => {
+    // 检查认证状态
+    if (!token || !sessionId) {
+      // 未认证，重定向到登录页
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // 验证会话有效性
+    async function validateSession() {
+      try {
+        const response = await fetch('http://localhost:8000/auth/validate_session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ session_id: sessionId })
+        });
+
+        const data = await response.json();
+        return data.is_valid;
+      } catch (error) {
+        console.error('会话验证失败:', error);
+        return false;
+      }
+    }
+
     const isValid = await validateSession();
     if (!isValid) {
       // 会话无效，清除cookie并重定向到登录页
       cookieStore.delete('sessionId');
       const loginUrl = new URL('/login', req.url);
       loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
-      resolve(NextResponse.redirect(loginUrl));
+      return NextResponse.redirect(loginUrl);
     } else {
       // 认证通过，继续请求
-      resolve(NextResponse.next());
+      return NextResponse.next();
     }
   });
 }
