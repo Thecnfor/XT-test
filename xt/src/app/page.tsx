@@ -158,6 +158,9 @@ export default function Home() {
 
       // 使用requestAnimationFrame优化UI更新
       let animationFrameId: number;
+      // 跟踪上次更新的内容，用于优化UI更新频率
+      let lastUpdatedContent = '';
+
       const updateUI = () => {
         if (animationFrameId) {
           cancelAnimationFrame(animationFrameId);
@@ -185,6 +188,7 @@ export default function Home() {
           const chunk = decoder.decode(value, { stream: true });
           buffer += chunk;
 
+          // 改进的SSE消息处理逻辑
           // 分割SSE消息（处理可能不完整的行）
           let lineEndIndex;
           while ((lineEndIndex = buffer.indexOf('\n\n')) !== -1) {
@@ -198,8 +202,21 @@ export default function Home() {
               }
               // 更新AI消息内容
               aiMessageContent += data;
-              updateUI(); // 优化UI更新
             }
+          }
+
+          // 处理剩余的buffer内容（如果有）
+          if (buffer && buffer.startsWith('data: ')) {
+            const data = buffer.substring(6);
+            if (data !== '[DONE]') {
+              aiMessageContent += data;
+            }
+          }
+
+          // 优化UI更新频率，避免过于频繁的更新
+          if (aiMessageContent !== lastUpdatedContent) {
+            updateUI();
+            lastUpdatedContent = aiMessageContent;
           }
         }
 

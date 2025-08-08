@@ -21,30 +21,31 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // 调用后端登录API
+      // 调用后端登录API - 使用application/x-www-form-urlencoded格式
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+
       const response = await fetch('http://localhost:8000/auth/token', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username: username,
-          password: password,
-        }),
+        body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('登录失败');
+        setError(data.error || '登录失败');
+        return;
       }
 
-      const data = await response.json();
-      // 使用setAuthToken方法设置令牌
-      setAuthToken(data.access_token);
+      // 使用setAuthToken方法设置令牌和会话ID
+      setAuthToken(data.access_token, data.session_id);
 
       // 登录成功，重定向到首页
       router.push('/admin');
     } catch (error) {
       setError('登录失败，请检查用户名和密码');
+      console.error('登录请求失败:', error);
     }
   };
 

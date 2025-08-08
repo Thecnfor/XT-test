@@ -1,6 +1,6 @@
 import openai
 import asyncio
-from config import OPENAI_API_KEY, OPENAI_BASE_URL
+from config import OPENAI_API_KEY, OPENAI_BASE_URL, AI_MODEL
 from schemas.chat import Message
 
 class ChatService:
@@ -15,7 +15,7 @@ class ChatService:
         try:
             # 调用Qwen模型生成响应
             response = self.client.chat.completions.create(
-                model="Qwen/Qwen2.5-Coder-7B-Instruct",
+                model=AI_MODEL,
                 messages=[msg.dict() for msg in messages],
                 stream=True
             )
@@ -24,11 +24,11 @@ class ChatService:
             for chunk in response:
                 if chunk.choices[0].delta.content is not None:
                     content = chunk.choices[0].delta.content
-                    # 流式输出每个字符，而不是整个块
-                    for char in content:
-                        yield f"data: {char}\n\n"
-                        # 添加微小延迟，确保浏览器能及时处理
-                        await asyncio.sleep(0.01)
+                    # 按块输出数据
+                    if content:
+                        yield f"data: {content}\n\n"
+                        # 添加适当延迟，确保浏览器能及时处理
+                        await asyncio.sleep(0.02)
             yield "data: [DONE]\n\n"
         except Exception as e:
             print(f"Chat service error: {str(e)}")

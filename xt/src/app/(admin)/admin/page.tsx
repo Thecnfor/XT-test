@@ -6,12 +6,12 @@ import { AuthContext } from '@/components/layout/Providers'
 
 export default function Admin() {
   const router = useRouter()
-  const { setAuthToken } = useContext(AuthContext)
+  const { clearSession } = useContext(AuthContext)
 
   // 直接定义handleLogout函数
-  const handleLogout = () => {
-    // 使用setAuthToken方法清除token
-    setAuthToken(null)
+  const handleLogout = async () => {
+    // 使用clearSession方法清除会话
+    await clearSession()
     // 重定向到登录页面
     router.push('/')
   }

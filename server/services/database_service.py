@@ -7,7 +7,10 @@ from schemas.user import User
 from config import DATABASE_TYPE, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST_PORT, DATABASE_NAME
 
 # 数据库文件路径
-DB_FILE = "users.db"
+DB_FILE = "server/db/users.db"
+
+# 确保数据库目录存在
+os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
 
 # 数据库连接函数
 def get_db_connection():
@@ -23,8 +26,8 @@ def get_db_connection():
         )
         return conn
     else:
-        # SQLite连接
-        conn = sqlite3.connect(DB_FILE)
+        # SQLite连接 - 添加timeout参数防止数据库锁定
+        conn = sqlite3.connect(DB_FILE, timeout=10)
         conn.row_factory = sqlite3.Row  # 使结果可以通过列名访问
         return conn
 
@@ -56,20 +59,7 @@ def init_db():
     result = cursor.fetchone()
     count = result['count'] if DATABASE_TYPE == "mysql" else result[0]
 
-    # 如果没有用户，插入测试数据
-    if count == 0:
-        # 加密密码
-        hashed_password = bcrypt.hashpw("admin123".encode('utf-8'), bcrypt.gensalt())
-        if DATABASE_TYPE == "mysql":
-            cursor.execute(
-                "INSERT INTO users (username, password) VALUES (%s, %s)",
-                ("admin", hashed_password.decode('utf-8'))
-            )
-        else:
-            cursor.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                ("admin", hashed_password.decode('utf-8'))
-            )
+    pass
 
     # 提交更改并关闭连接
     conn.commit()
@@ -77,39 +67,61 @@ def init_db():
 
 # 添加新用户
 def add_user(username: str, password: str) -> bool:
-    try:
-        # 加密密码
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    conn = None
+    max_retries = 3
+    retry_count = 0
 
-        # 连接数据库
-        conn = get_db_connection()
-        cursor = conn.cursor()
+    while retry_count < max_retries:
+        try:
+            # 加密密码
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-        # 插入用户
-        if DATABASE_TYPE == "mysql":
-            cursor.execute(
-                "INSERT INTO users (username, password) VALUES (%s, %s)",
-                (username, hashed_password.decode('utf-8'))
-            )
-        else:
-            cursor.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, hashed_password.decode('utf-8'))
-            )
+            # 连接数据库
+            conn = get_db_connection()
+            cursor = conn.cursor()
 
-        # 提交更改
-        conn.commit()
-        conn.close()
-        return True
-    except (sqlite3.IntegrityError, pymysql.IntegrityError):
-        # 用户名已存在
-        return False
-    except Exception as e:
-        print(f"Error adding user: {e}")
-        return False
+            # 插入用户
+            if DATABASE_TYPE == "mysql":
+                cursor.execute(
+                    "INSERT INTO users (username, password) VALUES (%s, %s)",
+                    (username, hashed_password.decode('utf-8'))
+                )
+            else:
+                cursor.execute(
+                    "INSERT INTO users (username, password) VALUES (?, ?)",
+                    (username, hashed_password.decode('utf-8'))
+                )
+
+            # 提交更改
+            conn.commit()
+            return True
+        except (sqlite3.IntegrityError, pymysql.IntegrityError):
+            # 用户名已存在
+            return False
+        except sqlite3.OperationalError as e:
+            if 'database is locked' in str(e) and retry_count < max_retries - 1:
+                retry_count += 1
+                print(f"Database locked, retrying ({retry_count}/{max_retries})...")
+                import time
+                time.sleep(0.5)  # 等待0.5秒后重试
+            else:
+                print(f"Error adding user: {e}")
+                return False
+        except Exception as e:
+            print(f"Error adding user: {e}")
+            return False
+        finally:
+            # 确保连接始终被关闭
+            if conn:
+                conn.close()
+
+    # 达到最大重试次数
+    print("Max retries reached, failed to add user.")
+    return False
 
 # 验证用户凭据
 def verify_user(username: str, password: str) -> bool:
+    conn = None
     try:
         # 连接数据库
         conn = get_db_connection()
@@ -128,9 +140,6 @@ def verify_user(username: str, password: str) -> bool:
             )
         result = cursor.fetchone()
 
-        # 关闭连接
-        conn.close()
-
         # 验证密码
         if result:
             hashed_password = result['password'] if DATABASE_TYPE == "mysql" else result[0]
@@ -139,9 +148,14 @@ def verify_user(username: str, password: str) -> bool:
     except Exception as e:
         print(f"Error verifying user: {e}")
         return False
+    finally:
+        # 确保连接始终被关闭
+        if conn:
+            conn.close()
 
 # 获取用户信息
 def get_user(username: str) -> User:
+    conn = None
     try:
         # 连接数据库
         conn = get_db_connection()
@@ -159,9 +173,6 @@ def get_user(username: str) -> User:
                 (username,)
             )
         result = cursor.fetchone()
-
-        # 关闭连接
-        conn.close()
 
         # 处理查询结果
         if result:
@@ -181,6 +192,10 @@ def get_user(username: str) -> User:
     except Exception as e:
         print(f"Error getting user: {e}")
         return None
+    finally:
+        # 确保连接始终被关闭
+        if conn:
+            conn.close()
 
 # 初始化数据库
 init_db()
