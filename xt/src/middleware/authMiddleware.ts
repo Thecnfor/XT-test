@@ -38,7 +38,7 @@ export async function authMiddleware(req: NextRequest) {
         });
 
         const data = await response.json();
-        return data.is_valid;
+        return data.valid;
       } catch (error) {
         console.error('会话验证失败:', error);
         return false;
@@ -53,10 +53,9 @@ export async function authMiddleware(req: NextRequest) {
       loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
       return NextResponse.redirect(loginUrl);
     } else {
-      // 认证通过，继续请求
-      return NextResponse.next();
-    }
-  });
+        // 认证通过，继续请求
+        return NextResponse.next();
+      }
 }
 
 export const config = {

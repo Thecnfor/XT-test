@@ -4,7 +4,7 @@ import sqlite3
 import pymysql
 import bcrypt
 from schemas.user import User
-from config import DATABASE_TYPE, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST_PORT, DATABASE_NAME
+from config import DATABASE_TYPE, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST_PORT, DATABASE_NAME, DATABASE_MAX_RETRIES
 
 # 数据库文件路径
 DB_FILE = "server/db/users.db"
@@ -68,7 +68,7 @@ def init_db():
 # 添加新用户
 def add_user(username: str, password: str) -> bool:
     conn = None
-    max_retries = 3
+    max_retries = DATABASE_MAX_RETRIES
     retry_count = 0
 
     while retry_count < max_retries:

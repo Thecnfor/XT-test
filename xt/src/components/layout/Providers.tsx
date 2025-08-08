@@ -1,10 +1,8 @@
 'use client';
 import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import navReducer from '@/store/NavSwitch';
+import { APP_CONFIG } from '@/lib/config';
 import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback, useRef } from 'react';
-import { APP_CONFIG } from '@/lib/config';
 
 // 使用与store/index.ts一致的配置
 import store from '@/store';
@@ -73,7 +71,7 @@ export default function Providers({ children }: { children: ReactNode }) {
   }, [sessionId]);
 
   // 检查会话状态的方法
-  const checkSessionStatus = useCallback(async () => {
+    const checkSessionStatus = useCallback(async () => {
     if (!sessionId) {
       return;
     }
@@ -98,7 +96,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       console.log('会话已过期或无效，清除会话');
       await clearSession();
     } else {
-      console.log('会话状态正常，下次检查时间:', new Date(Date.now() + 300000).toLocaleTimeString());
+      console.log('会话状态正常，下次检查时间:', new Date(Date.now() + APP_CONFIG.session.checkInterval).toLocaleTimeString());
     }
     } catch (error) {
       console.error('检查会话状态发生异常:', error);
@@ -147,7 +145,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       // 立即检查一次
       checkSessionStatus();
       // 然后每5分钟检查一次
-      checkTimerRef.current = window.setInterval(checkSessionStatus, 300000); // 5分钟 = 300000毫秒
+      checkTimerRef.current = window.setInterval(checkSessionStatus, APP_CONFIG.session.checkInterval); // 使用配置文件中的检查间隔
       console.log('会话状态检查定时器已启动');
     }
 

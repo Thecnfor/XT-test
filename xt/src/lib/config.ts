@@ -6,7 +6,7 @@ export const APP_CONFIG = {
   // 会话配置
   session: {
     // 会话检查间隔（毫秒）
-    checkInterval: 60000, // 1分钟
+    checkInterval: 300000, // 5分钟
     // 会话即将过期的警告阈值（分钟）
     expiryWarningThreshold: 5,
   },

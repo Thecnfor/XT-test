@@ -1,24 +1,23 @@
-import json
 import os
 import uuid
 import html
 import re
-import json
 import threading
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 import time
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import BaseModel
 
 from schemas.user import User, RegisterRequest, LoginRequest
 from services.database_service import add_user, verify_user, get_user
-from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES
-# 会话不活动超时时间（分钟）
-SESSION_INACTIVITY_TIMEOUT = 15
+from services.session_service import SessionService
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES, SESSION_FILE
+# 初始化会话服务
+session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
 
 # 验证输入是否安全
 def is_safe_input(input_str: str) -> bool:
@@ -48,144 +47,13 @@ class ValidateSessionRequest(BaseModel):
 class ForceLogoutRequest(BaseModel):
     username: str
 
-# 会话存储 - 使用JSON文件
-SESSION_FILE = "d:/Xrak/XT-test/server/session.json"
-
-# 加载会话数据
-active_sessions: Dict[str, Dict] = {}
-
-def load_sessions():
-    """从JSON文件加载会话数据"""
-    global active_sessions
-    if os.path.exists(SESSION_FILE):
-        try:
-            with open(SESSION_FILE, 'r') as f:
-                # 将字符串时间转换回datetime对象
-                sessions_data = json.load(f)
-                for session_id, session in sessions_data.items():
-                    session['expire_time'] = datetime.fromisoformat(session['expire_time'])
-                    session['created_at'] = datetime.fromisoformat(session['created_at'])
-                active_sessions = sessions_data
-        except (json.JSONDecodeError, KeyError, ValueError):
-            # 文件格式错误或数据损坏，重置会话
-            active_sessions = {}
-    else:
-        active_sessions = {}
-
-# 保存会话数据
-def save_sessions():
-    """将会话数据保存到JSON文件"""
-    # 将datetime对象转换为字符串
-    sessions_data = {}
-    for session_id, session in active_sessions.items():
-        sessions_data[session_id] = {
-            'username': session['username'],
-            'expire_time': session['expire_time'].isoformat(),
-            'created_at': session['created_at'].isoformat()
-        }
-    with open(SESSION_FILE, 'w') as f:
-        json.dump(sessions_data, f, indent=2)
-
-import bcrypt
-import time
-
-def create_session(username: str) -> str:
-    """创建新会话并返回会话ID，使用UUID+哈希方案"""
-    try:
-        # 使用UUID生成唯一会话ID
-        session_id = str(uuid.uuid4())
-        current_time = datetime.utcnow()
-        expire_time = current_time + timedelta(minutes=SESSION_EXPIRE_MINUTES)
-        
-        # 生成随机盐和会话密钥用于验证
-        salt = bcrypt.gensalt()
-        session_key = bcrypt.hashpw(f"{username}:{session_id}".encode('utf-8'), salt).decode('utf-8')
-        
-        active_sessions[session_id] = {
-            "username": username,
-            "expire_time": expire_time,
-            "created_at": current_time,
-            "last_activity": current_time,
-            "session_key": session_key,
-            "salt": salt.decode('utf-8')
-        }
-        save_sessions()  # 保存到文件
-        print(f"会话创建成功: UUID={session_id}, 用户名: {username}")
-        print(f"会话密钥: {session_key}")
-        return session_id
-    except Exception as e:
-        print(f"会话创建失败: {str(e)}")
-        raise
-
-
-def verify_session(session_id: str) -> bool:
-    """验证会话ID的有效性"""
-    try:
-        if session_id not in active_sessions:
-            print(f"会话不存在: {session_id}")
-            return False
-        
-        session = active_sessions[session_id]
-        # 检查会话是否过期
-        if session['expire_time'] < datetime.utcnow():
-            end_session(session_id)  # 删除过期会话
-            print(f"会话已过期: {session_id}")
-            return False
-        
-        # 检查会话是否长时间不活动
-        if session['last_activity'] + timedelta(minutes=SESSION_INACTIVITY_TIMEOUT) < datetime.utcnow():
-            end_session(session_id)  # 删除长时间不活动的会话
-            print(f"会话长时间不活动已过期: {session_id}")
-            return False
-        
-        # 更新最后活动时间
-        session['last_activity'] = datetime.utcnow()
-        active_sessions[session_id] = session
-        save_sessions()
-        return True
-    except (KeyError, ValueError) as e:
-        print(f"会话验证异常: {str(e)}, 会话ID: {session_id}")
-        return False
-
-def end_session(session_id: str) -> bool:
-    """结束会话"""
-    if session_id in active_sessions:
-        del active_sessions[session_id]
-        save_sessions()  # 保存到文件
-        return True
-    return False
-
-
-def cleanup_expired_sessions():
-    """清理过期会话和长时间不活动的会话"""
-    current_time = datetime.utcnow()
-    inactivity_timeout = timedelta(minutes=SESSION_INACTIVITY_TIMEOUT)
-    expired_sessions = [
-        session_id for session_id, session in active_sessions.items()
-        if session["expire_time"] < current_time or 
-           ("last_activity" in session and session["last_activity"] + inactivity_timeout < current_time)
-    ]
-    for session_id in expired_sessions:
-        del active_sessions[session_id]
-    if expired_sessions:
-        save_sessions()  # 如果有删除操作，保存到文件
-        print(f"已清理 {len(expired_sessions)} 个过期或不活动的会话")
-
-# 初始化加载会话
-def initialize_sessions():
-    load_sessions()
-    cleanup_expired_sessions()
-    save_sessions()
-
-# 初始化会话
-initialize_sessions()
-
 # 定期清理过期会话的线程函数
 def session_cleanup_worker():
     """后台线程函数，定期清理过期会话"""
+    from config import SESSION_CLEANUP_INTERVAL_MINUTES
     while True:
-        cleanup_expired_sessions()
-        time.sleep(1800)  # 每30分钟清理一次
+        session_service._cleanup_expired_sessions()
+        time.sleep(SESSION_CLEANUP_INTERVAL_MINUTES * 60)  # 每{SESSION_CLEANUP_INTERVAL_MINUTES}分钟清理一次
 
 # 启动会话清理线程
 def start_session_cleanup_thread():
@@ -205,8 +73,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 def get_active_session_count() -> int:
     """获取当前活跃会话数量"""
-    cleanup_expired_sessions()
-    return len(active_sessions)
+    return session_service.get_active_session_count()
 
 # 创建访问令牌
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -260,9 +127,49 @@ async def register(user: RegisterRequest):
             detail="用户名已存在"
         )
 
+# 获取客户端信息
+async def get_client_info(request: Request) -> Dict:
+    """获取客户端信息，包括IP、浏览器指纹和设备信息"""
+    # 获取IP地址
+    client_ip = request.client.host if request.client else "unknown"
+    
+    # 获取用户代理
+    user_agent = request.headers.get("user-agent", "unknown")
+    
+    # 简单的设备检测
+    device_type = "unknown"
+    if "mobile" in user_agent.lower():
+        device_type = "mobile"
+    elif "tablet" in user_agent.lower():
+        device_type = "tablet"
+    elif "desktop" in user_agent.lower() or "windows" in user_agent.lower() or "macintosh" in user_agent.lower():
+        device_type = "desktop"
+    
+    # 浏览器检测
+    browser = "unknown"
+    if "chrome" in user_agent.lower():
+        browser = "chrome"
+    elif "firefox" in user_agent.lower():
+        browser = "firefox"
+    elif "safari" in user_agent.lower():
+        browser = "safari"
+    elif "edge" in user_agent.lower():
+        browser = "edge"
+    
+    # 构建会话属性
+    session_attributes = {
+        "ip": client_ip,
+        "user_agent": user_agent,
+        "device_type": device_type,
+        "browser": browser,
+        "last_activity": datetime.utcnow()
+    }
+    
+    return session_attributes
+
 # 用户登录API - 获取令牌和会话ID
 @router.post("/token", response_model=dict)
-async def login(login_request: LoginRequest):
+async def login(login_request: LoginRequest, request: Request):
     # 验证输入是否安全
     if not is_safe_input(login_request.username) or not is_safe_input(login_request.password):
         raise HTTPException(
@@ -284,15 +191,12 @@ async def login(login_request: LoginRequest):
     access_token = create_access_token(
         data={"sub": username}, expires_delta=access_token_expires
     )
-    # 创建会话
-    session_id = create_session(username)
     
-    # 验证会话ID
-    if not verify_session(session_id):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="会话创建失败，请重试",
-        )
+    # 获取客户端信息
+    session_attributes = await get_client_info(request)
+    
+    # 创建会话
+    session_id = session_service.create_session(username, session_attributes)
     
     return {"access_token": access_token, "token_type": "bearer", "session_id": session_id}
 
@@ -302,33 +206,27 @@ async def login(login_request: LoginRequest):
 async def logout(logout_request: LogoutRequest):
     session_id = logout_request.session_id
     
-    # 验证会话ID
-    if not verify_session(session_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="无效的会话ID"
-        )
-    
-    success = end_session(session_id)
-    if success:
+    if session_service.end_session(session_id):
         return {"message": "登出成功", "session_id": session_id}
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="无效的会话ID"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="会话不存在或已过期"
         )
 
 # 验证会话API
 @router.post("/validate_session", response_model=dict)
 async def validate_session(validate_request: ValidateSessionRequest):
     session_id = validate_request.session_id
-    is_valid = verify_session(session_id)
-    if is_valid:
-        session = active_sessions[session_id]
+    # 验证会话并更新最后活动时间
+    result = session_service.validate_session(session_id)
+    if result['valid']:
+        # 更新会话的最后活动时间
+        session_service._update_session_activity(session_id)
         return {
             "valid": True,
-            "username": session["username"],
-            "expire_time": session["expire_time"].isoformat()
+            "username": result["username"],
+            "expire_time": result["expire_time"].isoformat()
         }
     else:
         return {"valid": False}
@@ -338,21 +236,20 @@ async def validate_session(validate_request: ValidateSessionRequest):
 async def refresh_session(validate_request: ValidateSessionRequest):
     session_id = validate_request.session_id
     
-    # 验证会话ID
-    if not verify_session(session_id):
+    # 刷新会话并更新最后活动时间
+    result = session_service.validate_session(session_id)
+    if not result['valid']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="无效的会话ID"
         )
     
-    # 更新会话过期时间
-    session = active_sessions[session_id]
-    session['expire_time'] = datetime.utcnow() + timedelta(minutes=SESSION_EXPIRE_MINUTES)
-    save_sessions()  # 保存到文件
+    # 更新会话的最后活动时间
+    session_service._update_session_activity(session_id)
     
     return {
         "success": True,
-        "new_expire_time": session['expire_time'].isoformat()
+        "new_expire_time": result['expire_time'].isoformat()
     }
 
 # 检查会话过期API
@@ -360,16 +257,17 @@ async def refresh_session(validate_request: ValidateSessionRequest):
 async def check_session_expiry(validate_request: ValidateSessionRequest, warning_threshold: int = 5):
     session_id = validate_request.session_id
     
-    # 验证会话ID
-    is_valid = verify_session(session_id)
-    if not is_valid:
+    result = session_service.validate_session(session_id)
+    if not result['valid']:
         return {
             "valid": False,
-            "message": "无效的会话ID"
+            "message": "无效的会话ID或会话已过期"
         }
     
-    session = active_sessions[session_id]
-    remaining_time = session['expire_time'] - datetime.utcnow()
+    # 更新会话的最后活动时间
+    session_service._update_session_activity(session_id)
+    
+    remaining_time = result['expire_time'] - datetime.utcnow()
     remaining_minutes = remaining_time.total_seconds() / 60
     
     return {
@@ -394,19 +292,11 @@ async def force_logout(username: str = Depends(get_current_user)):
         current_user = await get_current_user()
         username = current_user.username
 
-    # 查找该用户的所有会话
-    user_sessions = [
-        session_id for session_id, session in active_sessions.items()
-        if session["username"] == username
-    ]
-
-    # 结束所有会话
-    for session_id in user_sessions:
-        end_session(session_id)
+    count = session_service.end_user_sessions(username)
 
     return {
         "message": f"成功强制退出用户 {username} 的所有会话",
-        "session_count": len(user_sessions)
+        "session_count": count
     }
 
 # 管理员强制退出指定用户所有会话API
@@ -422,19 +312,11 @@ async def admin_force_logout(username: str, current_user: User = Depends(get_cur
         包含成功信息和被强制退出的会话数量的字典
     """
     # 这里可以添加管理员权限检查逻辑
-    # 查找该用户的所有会话
-    user_sessions = [
-        session_id for session_id, session in active_sessions.items()
-        if session["username"] == username
-    ]
-
-    # 结束所有会话
-    for session_id in user_sessions:
-        end_session(session_id)
+    count = session_service.end_user_sessions(username)
 
     return {
         "message": f"管理员成功强制退出用户 {username} 的所有会话",
-        "session_count": len(user_sessions)
+        "session_count": count
     }
 
 # 全局强制退出所有用户会话API
@@ -449,9 +331,8 @@ async def admin_force_logout_all(current_user: User = Depends(get_current_user))
         包含成功信息和被强制退出的会话数量的字典
     """
     # 这里可以添加管理员权限检查逻辑
-    session_count = len(active_sessions)
-    active_sessions.clear()
-    save_sessions()
+    session_count = session_service.get_active_session_count()
+    session_service.clear_all_sessions()
 
     return {
         "message": f"管理员成功强制退出所有用户的所有会话",
