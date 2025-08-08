@@ -11,7 +11,18 @@ export default function AdminButton() {
     const pathname = usePathname();
     const { isAuthenticated } = useContext(AuthContext);
     const [authState, setAuthState] = useState(isAuthenticated);
+    const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
     const dispatch = useDispatch();
+
+    // 监听窗口大小变化
+    useEffect(() => {
+        const handleResize = () => {
+            setScreenWidth(window.innerWidth);
+        };
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // 监听认证状态变化
     useEffect(() => {
@@ -19,7 +30,10 @@ export default function AdminButton() {
     }, [isAuthenticated]);
 
     const handleLinkClick = () => {
-        dispatch(setNavWidth('0'));
+        // 只在屏幕宽度<=768px时执行
+        if (screenWidth <= 768) {
+            dispatch(setNavWidth('0'));
+        }
     };
 
     // 只在根目录显示
