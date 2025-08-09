@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { NextRequest, NextResponse } from 'next/server';
-
 // 定义注册请求的数据结构
 interface RegisterRequest {
   username: string;
   password: string;
 }
 
-// 导入加密库
+// 导入配置和加密库
+import { APP_CONFIG } from '@/lib/config';
 import CryptoJS from 'crypto-js';
-
-// 加密密钥 - 必须与前端和后端保持一致
-const ENCRYPTION_KEY = 'your-encryption-key-here'; // 生产环境中应使用环境变量
 
 // 加密函数
 const encryptPassword = (password: string): string => {
-  return CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString();
+  return CryptoJS.AES.encrypt(password, APP_CONFIG.security.encryptionKey).toString();
 };
 
 export async function POST(req: NextRequest) {

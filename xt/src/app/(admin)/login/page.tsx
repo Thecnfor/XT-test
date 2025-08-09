@@ -3,9 +3,7 @@ import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/layout/Providers';
 import CryptoJS from 'crypto-js';
-
-// 加密密钥 - 实际应用中应从安全存储中获取
-const ENCRYPTION_KEY = 'your-encryption-key-here'; // 生产环境中应使用环境变量
+import { APP_CONFIG } from '@/lib/config';
 
 
 // 过滤特殊字符的函数
@@ -48,7 +46,7 @@ const checkPasswordStrength = (password: string): { strength: 'weak' | 'medium' 
 // 加密函数 - 与后端解密逻辑匹配
 const encryptPassword = (password: string): string => {
   // 使用CryptoJS的PBKDF2密钥派生
-  const key = CryptoJS.enc.Utf8.parse(ENCRYPTION_KEY);
+  const key = CryptoJS.enc.Utf8.parse(APP_CONFIG.security.encryptionKey);
   const salt = CryptoJS.lib.WordArray.random(8); // 8字节salt
   
   // 使用PBKDF2生成密钥和IV (与后端一致)

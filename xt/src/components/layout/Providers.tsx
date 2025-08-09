@@ -85,7 +85,7 @@ export default function Providers({ children }: { children: ReactNode }) {
     // 避免过于频繁的检查
     const now = Date.now();
     const lastCheck = Number(getCookie('lastSessionCheck') || '0');
-    const minCheckInterval = 5000; // 最小检查间隔5秒
+    const minCheckInterval = APP_CONFIG.session.minCheckInterval; // 最小检查间隔
 
     if (!forceCheck && now - lastCheck < minCheckInterval) {
       return;
