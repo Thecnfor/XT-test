@@ -99,7 +99,6 @@ const LoginPage = () => {
   // 检查是否已登录，如果已登录则重定向到后台
   useEffect(() => {
     if (isAuthenticated && usernameFromCookie) {
-      console.log('用户已登录，重定向到后台');
       router.push(`/admin/${usernameFromCookie}`);
     }
   }, [isAuthenticated, router, usernameFromCookie]);
@@ -173,7 +172,6 @@ const LoginPage = () => {
       router.push(redirectUrl);
     } catch (error) {
       setError('登录失败，请检查用户名和密码');
-      console.error('登录请求失败:', error);
     }
   };
 
@@ -229,7 +227,6 @@ const LoginPage = () => {
       setError('注册成功，请登录');
     } catch (error) {
       setRegisterError('注册失败，请稍后再试');
-      console.error('注册请求失败:', error);
     }
   };
 

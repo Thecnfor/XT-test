@@ -24,5 +24,5 @@ async def chat(request: Request):
             media_type="text/event-stream"
         )
     except Exception as e:
-        print(f"Chat API error: {str(e)}")
+        print(f"聊天API闹脾气了，可能是网络在撒娇: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

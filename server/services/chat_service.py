@@ -31,5 +31,5 @@ class ChatService:
                         await asyncio.sleep(0.02)
             yield "data: [DONE]\n\n"
         except Exception as e:
-            print(f"Chat service error: {str(e)}")
+            print(f"聊天服务罢工了，它可能需要一杯咖啡: {str(e)}")
             raise e

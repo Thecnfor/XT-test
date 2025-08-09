@@ -7,7 +7,9 @@ import asyncio
 import threading
 from api.auth import router as auth_router
 from api.chat import router as chat_router
+from api.log import router as log_router
 from config import SERVER_PORT, UVICORN_WORKERS
+from middleware.logging_middleware import LoggingMiddleware
 
 # 创建FastAPI应用
 app = FastAPI()
@@ -26,7 +28,6 @@ async def cleanup():
     session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
     session_service.clear_all_sessions()
     print("已清除所有会话")
-    await asyncio.sleep(1)  # 模拟清理工作
     print("清理完成，应用已退出。")
 
 # 信号处理函数
@@ -54,12 +55,17 @@ app.add_middleware(
 # 注册API路由
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(log_router)
 
 # 导入数据库初始化函数
 from services.database_service import init_db
 
 # 初始化数据库
 init_db()
+
+# 添加日志中间件
+app.add_middleware(LoggingMiddleware)
+print("日志中间件已添加")
 
 # 根路由
 @app.get("/")

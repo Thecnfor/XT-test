@@ -78,7 +78,7 @@ export default function AdminButton() {
                 const decodedToken = JSON.parse(atob(token.split('.')[1]));
                 return decodedToken.username || decodedToken.name || 'unknown';
             } catch (error) {
-                console.error('Failed to decode token:', error);
+                console.error('解析token失败，它可能加密得太厉害了:', error);
             }
         }
         

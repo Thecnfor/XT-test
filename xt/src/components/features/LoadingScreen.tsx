@@ -97,7 +97,7 @@ const LoadingScreen = () => {
     const checkStyles = () => {
       const elapsedTime = Date.now() - startTime;
       if (checkCriticalStyles() && elapsedTime >= minDisplayTime) {
-        console.log('Critical styles loaded and minimum time elapsed');
+        console.log('关键样式已加载，等待时间已达标，可以揭开神秘面纱啦！');
         startFadeOut();
       } else {
         animationFrameId = requestAnimationFrame(checkStyles);
@@ -109,7 +109,7 @@ const LoadingScreen = () => {
 
     // 监听load事件作为后备
     const handleLoad = () => {
-      console.log('Window load event triggered');
+      console.log('窗口加载事件已触发，页面准备好和你见面啦！');
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime >= minDisplayTime) {
         startFadeOut();

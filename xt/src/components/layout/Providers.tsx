@@ -113,7 +113,6 @@ export default function Providers({ children }: { children: ReactNode }) {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error('检查会话状态请求失败:', response.statusText);
         // 仅在非401错误时清除会话，避免循环登出
         if (response.status !== 401) {
           await clearSession();
@@ -123,19 +122,15 @@ export default function Providers({ children }: { children: ReactNode }) {
 
       const data = await response.json();
       if (!data.valid) {
-        console.log('会话已过期或无效，清除会话');
         await clearSession();
       } else {
         // 会话有效，更新会话信息
         setCookie('sessionExpiry', (Date.now() + data.remaining_time * 1000).toString(), 1);
-        console.log('会话状态正常，下次检查时间:', new Date(Date.now() + APP_CONFIG.session.checkInterval).toLocaleTimeString());
       }
     } catch (error) {
-      console.error('检查会话状态发生异常:', error);
       // 网络错误时，尝试使用Cookie存储的过期时间
       const expiryTime = Number(getCookie('sessionExpiry') || '0');
       if (expiryTime && now > expiryTime) {
-        console.log('本地检测到会话已过期，清除会话');
         await clearSession();
       } else if (error instanceof Error && error.name === 'AbortError') {
         console.warn('会话检查请求超时');
@@ -189,11 +184,9 @@ export default function Providers({ children }: { children: ReactNode }) {
       checkSessionStatus();
       // 然后每5分钟检查一次
       checkTimerRef.current = window.setInterval(checkSessionStatus, APP_CONFIG.session.checkInterval); // 使用配置文件中的检查间隔
-      console.log('会话状态检查定时器已启动');
 
       // 添加窗口聚焦时的检查
       const handleFocus = () => {
-        console.log('窗口聚焦，检查会话状态');
         checkSessionStatus(true); // 强制检查
       };
 
@@ -204,7 +197,6 @@ export default function Providers({ children }: { children: ReactNode }) {
         if (checkTimerRef.current) {
           window.clearInterval(checkTimerRef.current);
           checkTimerRef.current = null;
-          console.log('会话状态检查定时器已清除');
         }
         window.removeEventListener('focus', handleFocus);
       };
@@ -215,7 +207,6 @@ export default function Providers({ children }: { children: ReactNode }) {
       if (checkTimerRef.current) {
         window.clearInterval(checkTimerRef.current);
         checkTimerRef.current = null;
-        console.log('会话状态检查定时器已清除');
       }
     };
   }, [isAuthenticated, checkSessionStatus]);
@@ -249,7 +240,6 @@ export default function Providers({ children }: { children: ReactNode }) {
   // 路由变化时检查会话状态
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('路由变化，检查会话状态');
       checkSessionStatus(true); // 强制检查
     }
   }, [pathname, isAuthenticated, checkSessionStatus]);

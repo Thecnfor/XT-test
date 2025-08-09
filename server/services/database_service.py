@@ -101,14 +101,14 @@ def add_user(username: str, password: str) -> bool:
         except sqlite3.OperationalError as e:
             if 'database is locked' in str(e) and retry_count < max_retries - 1:
                 retry_count += 1
-                print(f"Database locked, retrying ({retry_count}/{max_retries})...")
+                print(f"数据库被锁啦，正在尝试破门而入 ({retry_count}/{max_retries})...")
                 import time
                 time.sleep(0.5)  # 等待0.5秒后重试
             else:
-                print(f"Error adding user: {e}")
+                print(f"添加用户失败，用户可能躲起来了: {e}")
                 return False
         except Exception as e:
-            print(f"Error adding user: {e}")
+            print(f"添加用户失败，用户可能是个骗子: {e}")
             return False
         finally:
             # 确保连接始终被关闭
@@ -116,7 +116,7 @@ def add_user(username: str, password: str) -> bool:
                 conn.close()
 
     # 达到最大重试次数
-    print("Max retries reached, failed to add user.")
+    print("尝试次数达到上限，用户还是不肯出来玩...")
     return False
 
 # 验证用户凭据
@@ -146,7 +146,7 @@ def verify_user(username: str, password: str) -> bool:
             return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
         return False
     except Exception as e:
-        print(f"Error verifying user: {e}")
+        print(f"验证用户失败，身份可能是假的: {e}")
         return False
     finally:
         # 确保连接始终被关闭
@@ -190,7 +190,7 @@ def get_user(username: str) -> User:
                 )
         return None
     except Exception as e:
-        print(f"Error getting user: {e}")
+        print(f"获取用户信息失败，用户可能搬家了: {e}")
         return None
     finally:
         # 确保连接始终被关闭

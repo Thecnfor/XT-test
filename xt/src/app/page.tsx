@@ -27,7 +27,7 @@ export default function Home() {
         try {
           abortControllerRef.current.abort();
         } catch (error) {
-          console.error('Error aborting request:', error);
+          console.error('请求中止失败，这就很尴尬了:', error);
         }
         abortControllerRef.current = null;
         setIsRequestActive(false);
@@ -100,7 +100,7 @@ export default function Home() {
       try {
         abortControllerRef.current.abort();
       } catch (error) {
-        console.error('Error aborting previous request:', error);
+        console.error('中止上一个请求失败，它可能赖着不想走:', error);
       }
       abortControllerRef.current = null;
     }
@@ -256,9 +256,9 @@ export default function Home() {
     } catch (error) {
       // 精确处理AbortError
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request aborted by user');
+        console.log('用户已中止请求，AI只能闭嘴了！');
       } else {
-        console.error('Error sending message:', error);
+        console.error('发送消息失败，消息可能迷路了:', error);
         // 使用函数形式确保获取最新状态
         setMessages(prevMessages => {
           // 区分用户主动中止和其他错误

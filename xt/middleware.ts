@@ -42,7 +42,6 @@ export async function authMiddleware(req: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   } catch (error) {
-    console.error('会话验证失败:', error);
     // 错误处理，重定向到登录页
     const loginUrl = new URL('/login', req.url);
     return NextResponse.redirect(loginUrl);

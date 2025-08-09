@@ -18,6 +18,6 @@ generated_text = ""
 for chunk in response:
     if chunk.choices[0].delta.content is not None:
         generated_text += chunk.choices[0].delta.content
-        print(chunk.choices[0].delta.content, end="", flush=True)
+        print(chunk.choices[0].delta.content, end="", flush=True)  # AI正在打字，请勿打断...
 
-print("\n完整响应:", generated_text)
+print("\nAI思考完毕，这是完整答案:", generated_text)

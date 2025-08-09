@@ -156,9 +156,6 @@ export async function authMiddleware(req: NextRequest) {
   const response = NextResponse.next();
   return addXFrameOptionsHeader(response);
 
-  // 删除了重复的无效代码
-  // 这些代码在函数返回后定义，永远不会被执行
-
 }
 
 export const config = {
