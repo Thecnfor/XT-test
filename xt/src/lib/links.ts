@@ -1,5 +1,15 @@
 // 统一管理导航链接
 const navLinks = {
+  '管理员': {
+    path: '/admin',
+    hasSubLinks: true,
+    show: false,
+    subLinks: {
+      '用户管理': { path: '/admin/users', hasSubLinks: false },
+      '权限设置': { path: '/admin/permissions', hasSubLinks: false },
+    },
+  },
+
   '日志&笔记': {
     path: '/log',
     hasSubLinks: true,

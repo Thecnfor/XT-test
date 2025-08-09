@@ -1,24 +1,23 @@
 'use client'
 
-import { useRouter, useParams } from 'next/navigation'
+import { redirect, useParams } from 'next/navigation'
 import { useContext } from 'react'
 import { AuthContext } from '@/components/layout/Providers'
 
 export default function UserAdminPage() {
-  const router = useRouter()
+  // 不再需要router对象
   const { userId } = useParams()
   const { clearSession, isAuthenticated } = useContext(AuthContext)
 
   // 处理退出登录
   const handleLogout = async () => {
     await clearSession()
-    router.push('/')
+    // 不需要额外的重定向，因为clearSession方法内部已经有window.location.href = '/'的处理
   }
-
+  
   // 如果未认证，重定向到登录页
   if (!isAuthenticated) {
-    router.push('/login')
-    return null
+    redirect('/login')
   }
 
   return (

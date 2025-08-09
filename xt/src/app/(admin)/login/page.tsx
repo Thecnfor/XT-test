@@ -1,9 +1,11 @@
 'use client';
-import { useState, useContext } from 'react';
+import  { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/layout/Providers';
 import CryptoJS from 'crypto-js';
 import { APP_CONFIG } from '@/lib/config';
+import React from 'react';
+import styled from 'styled-components';
 
 
 // 过滤特殊字符的函数
@@ -76,7 +78,8 @@ const encryptPassword = (password: string): string => {
   return saltedData.toString(CryptoJS.enc.Base64);
 };
 
-export default function LoginPage() {
+// 主登录页面组件
+const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -220,135 +223,272 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        {isRegistering ? (
-          <>
-            <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">注册</h2>
-            {registerError && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-                {registerError}
-              </div>
-            )}
-            <form onSubmit={handleRegisterSubmit}>
-              <div className="mb-4">
-                <label htmlFor="registerUsername" className="block mb-2 text-sm font-medium text-gray-700">
-                  用户名
-                </label>
-                <input
-                  type="text"
-                  id="registerUsername"
-                  value={registerUsername}
-                  onChange={(e) => setRegisterUsername(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="registerPassword" className="block mb-2 text-sm font-medium text-gray-700">
-                  密码
-                </label>
-                <input
+    <StyledWrapper>
+      <div className="container">
+        <div className="card">
+          <h2 className="login">{isRegistering ? '注册' : '登录'}</h2>
+          {isRegistering ? (
+            <div className="form-container">
+              {registerError && (
+                <div className="error-message">
+                  {registerError}
+                </div>
+              )}
+              <form onSubmit={handleRegisterSubmit} className="form">
+                <div className="inputBox">
+                  <input
+                    type="text"
+                    id="registerUsername"
+                    value={registerUsername}
+                    onChange={(e) => setRegisterUsername(e.target.value)}
+                    required
+                  />
+                  <span className="user">用户名</span>
+                </div>
+                <div className="inputBox">
+                  <input
                     type="password"
                     id="registerPassword"
                     value={registerPassword}
                     onChange={handleRegisterPasswordChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
-                  {registerPasswordStrength && (
-                    <div className={`mt-2 text-sm ${registerPasswordStrength.strength === 'weak' ? 'text-red-600' : registerPasswordStrength.strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {registerPasswordStrength.message}
-                    </div>
-                  )}
-              </div>
-              <div className="mb-6">
-                <label htmlFor="registerConfirmPassword" className="block mb-2 text-sm font-medium text-gray-700">
-                  确认密码
-                </label>
-                <input
-                  type="password"
-                  id="registerConfirmPassword"
-                  value={registerConfirmPassword}
-                  onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+                  <span>密码</span>
+                </div>
+                {registerPasswordStrength && (
+                  <div className="password-strength">
+                    {registerPasswordStrength.message}
+                  </div>
+                )}
+                <div className="inputBox">
+                  <input
+                    type="password"
+                    id="registerConfirmPassword"
+                    value={registerConfirmPassword}
+                    onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                    required
+                  />
+                  <span>确认密码</span>
+                </div>
+                <button className="enter" type="submit">
+                  注册
+                </button>
+              </form>
               <button
-                type="submit"
-                className="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-              >
-                注册
-              </button>
-            </form>
-            <div className="mt-4 text-center">
-              <button
+                className="switch-form"
                 onClick={() => setIsRegistering(false)}
-                className="text-blue-600 hover:text-blue-800"
               >
                 已有账号？立即登录
               </button>
             </div>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">登录</h2>
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-                {error}
-              </div>
-            )}
-            <form onSubmit={handleLoginSubmit}>
-              <div className="mb-4">
-                <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-700">
-                  用户名
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div className="mb-6">
-                <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
-                  密码
-                </label>
-                <input
+          ) : (
+            <div className="form-container">
+              {error && (
+                <div className="error-message">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleLoginSubmit} className="form">
+                <div className="inputBox">
+                  <input
+                    type="text"
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                  <span className="user">用户名</span>
+                </div>
+                <div className="inputBox">
+                  <input
                     type="password"
                     id="password"
                     value={password}
                     onChange={handlePasswordChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
-                  {passwordStrength && (
-                    <div className={`mt-2 text-sm ${passwordStrength.strength === 'weak' ? 'text-red-600' : passwordStrength.strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
-                      {passwordStrength.message}
-                    </div>
-                  )}
-              </div>
+                  <span>密码</span>
+                </div>
+                {passwordStrength && (
+                  <div className="password-strength">
+                    {passwordStrength.message}
+                  </div>
+                )}
+                <button className="enter" type="submit">
+                  登录
+                </button>
+              </form>
               <button
-                type="submit"
-                className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                登录
-              </button>
-            </form>
-            <div className="mt-4 text-center">
-              <button
+                className="switch-form"
                 onClick={() => setIsRegistering(true)}
-                className="text-blue-600 hover:text-blue-800"
               >
                 还没有账号？立即注册
               </button>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </StyledWrapper>
   );
 }
+
+
+// 导出登录页面组件
+export default LoginPage;
+
+const StyledWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-color);
+  padding: 40px 0;
+
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 64px;
+    margin-right: var(--nav-width);
+  }
+
+  .login {
+    color: var(--text-color);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: block;
+    font-weight: bold;
+    font-size: x-large;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-direction: column;
+    gap: 20px;
+    background: var(--bg-color);
+    padding: 30px;
+  }
+
+  .inputBox {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--text-color);
+    border-left: 2px solid var(--text-color);
+    border-bottom-left-radius: 8px;
+  }
+
+  .inputBox input {
+    width: 100%;
+    padding: 10px;
+    outline: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1em;
+    background: transparent;
+    transition: 0.1s;
+  }
+
+  .inputBox span {
+    margin-top: 5px;
+    position: absolute;
+    left: 0;
+    transform: translateY(-4px);
+    margin-left: 10px;
+    padding: 10px;
+    pointer-events: none;
+    font-size: 12px;
+    color: var(--text-color);
+    text-transform: uppercase;
+    transition: 0.5s;
+    letter-spacing: 3px;
+    border-radius: 8px;
+  }
+
+  .inputBox input:valid~span,
+  .inputBox input:focus~span {
+    transform: translateX(148px) translateY(-15px);
+    padding: 3px 9px;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+  }
+
+  .inputBox input:valid,
+  .inputBox input:focus {
+    border-radius: 8px;
+  }
+
+  .error-message {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: ;
+    color: #d8000c;
+    border: 1px solid #d8000c;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .password-strength {
+    width: 100%;
+    padding: 5px 0;
+    font-size: 12px;
+    color: var(--text-color);
+    margin-top: -10px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .form-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .enter {
+    height: 45px;
+    width: 120px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--bg-color);
+    background-color: var(--text-color);
+    font-size: 18px;
+    transition: 0.5s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 15px auto;
+    font-weight: bold;
+  }
+
+  .switch-form {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+
+  .enter:hover {
+    border: 2px solid var(--text-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }`;
