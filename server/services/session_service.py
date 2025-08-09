@@ -249,3 +249,30 @@ class SessionService:
         self.active_sessions = {}
         self._save_sessions()
         logger.info("已清除所有会话")
+
+    def get_session_device_type(self, session_id: str) -> Dict:
+        """根据会话ID获取设备类型信息
+
+        参数:
+            session_id: 会话ID
+
+        返回:
+            包含设备类型信息的字典，如果会话不存在则返回空字典
+        """
+        self._cleanup_expired_sessions()
+        
+        # 查找会话
+        for username, user_data in self.active_sessions.items():
+            if 'sessions' in user_data and session_id in user_data['sessions']:
+                session = user_data['sessions'][session_id]
+                device_info = {
+                    'device_type': session.get('device_type', 'unknown'),
+                    'browser': session.get('browser', 'unknown'),
+                    'user_agent': session.get('user_agent', 'unknown'),
+                    'ip': session.get('ip', 'unknown')
+                }
+                logger.debug(f"获取会话 {session_id} 的设备类型信息: {device_info}")
+                return device_info
+        
+        logger.warning(f"尝试获取不存在的会话的设备类型信息: {session_id}")
+        return {}

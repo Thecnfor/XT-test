@@ -353,6 +353,22 @@ async def get_active_sessions():
     count = get_active_session_count()
     return {"active_session_count": count}
 
+# 获取会话设备类型API
+@router.post("/device_info", response_model=dict)
+async def get_device_info(validate_request: ValidateSessionRequest):
+    session_id = validate_request.session_id
+    device_info = session_service.get_session_device_type(session_id)
+    if device_info:
+        return {
+            "success": True,
+            "device_info": device_info
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="会话不存在或已过期"
+        )
+
 # 受保护的路由示例
 @router.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
