@@ -45,7 +45,8 @@ export default function RootLayout({
           <main>
             <SwitchNav />
             <div className={`mainPage`}>
-            {children}
+              <div className="bg-filter"></div>  
+              {children}
             </div>
             <Footer />
           </main>

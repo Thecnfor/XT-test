@@ -5,6 +5,8 @@ import { AuthContext } from '@/components/layout/Providers';
 import CryptoJS from 'crypto-js';
 import { APP_CONFIG } from '@/lib/config';
 import React from 'react';
+import { getCookie } from '@/lib/utils';
+import { useEffect } from 'react';
 import styled from 'styled-components';
 
 
@@ -91,7 +93,16 @@ const LoginPage = () => {
   const [passwordStrength, setPasswordStrength] = useState<{ strength: 'weak' | 'medium' | 'strong'; message: string } | null>(null);
   const [registerPasswordStrength, setRegisterPasswordStrength] = useState<{ strength: 'weak' | 'medium' | 'strong'; message: string } | null>(null);
   const router = useRouter();
-  const { setAuthToken } = useContext(AuthContext);
+  const { isAuthenticated, setAuthToken } = useContext(AuthContext);
+  const usernameFromCookie = getCookie('username');
+
+  // 检查是否已登录，如果已登录则重定向到后台
+  useEffect(() => {
+    if (isAuthenticated && usernameFromCookie) {
+      console.log('用户已登录，重定向到后台');
+      router.push(`/admin/${usernameFromCookie}`);
+    }
+  }, [isAuthenticated, router, usernameFromCookie]);
 
   // 密码强度检查处理
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,9 +2,10 @@
 import { Provider } from 'react-redux';
 import type { ReactNode } from 'react';
 import { createContext, useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/lib/config';
 import { setCookie, getCookie, deleteCookie } from '@/lib/utils';
+import { initializeBgFilter } from '@/store/NavSwitch';
 
 // 使用与store/index.ts一致的配置
 import store from '@/store';
@@ -226,6 +227,9 @@ export default function Providers({ children }: { children: ReactNode }) {
     setToken(storedToken);
     setSessionId(storedSessionId);
     setIsAuthenticated(!!storedToken);
+
+    // 初始化bg-filter
+    store.dispatch(initializeBgFilter());
 
     // 清除函数
     return () => {

@@ -126,3 +126,16 @@
         display: none;
     }
 }
+
+.bg-filter{
+    display: var(--bg-filter);
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    width: 100svw;
+    height: 100svh;
+    z-index: 80;
+}

@@ -33,7 +33,7 @@ export default function AdminButton() {
     const handleLinkClick = () => {
         // 只在屏幕宽度<=768px时执行
         if (screenWidth <= 768) {
-            dispatch(setNavWidth('0'));
+            dispatch(setNavWidth('0px'));
         }
     };
 
@@ -41,6 +41,20 @@ export default function AdminButton() {
     if (pathname == '/login') {
         return null;
     }
+
+    // 登出方法
+    const handleLogout = () => {
+        // 清除认证相关的cookie和localStorage
+        document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        localStorage.removeItem('username');
+        localStorage.removeItem('token');
+        
+        // 更新认证状态
+        setAuthState(false);
+        
+        // 重定向到登录页
+        window.location.href = '/login';
+    };
 
     // 获取当前用户名（从cookie、localStorage或token中）
     const getCurrentUsername = () => {
@@ -68,12 +82,14 @@ export default function AdminButton() {
             }
         }
         
-        // 所有方法都失败，返回默认值
+        // 所有方法都失败，调用登出并返回默认值
+        handleLogout();
         return 'unknown';
     };
 
     return (
-        <>        {authState ? (
+        <>        
+        {authState ? (
             <div className="admin-button">
                 <Link href={`/admin/${getCurrentUsername()}`} onClick={handleLinkClick}>管理员</Link>
             </div>

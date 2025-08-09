@@ -25,7 +25,7 @@ const SwitchChat = () => {
   }, [navWidth]);
 
   const handleChange = () => {
-    const newWidth = isChecked ? '0' : '300px';
+    const newWidth = isChecked ? '0px' : '300px';
     setIsChecked(!isChecked);
     dispatch(setNavWidth(newWidth));
   };

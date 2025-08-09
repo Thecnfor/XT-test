@@ -1,30 +1,12 @@
 {
   "123": {
     "sessions": {
-      "2ebbbe43-dcf1-4a6c-a8e2-37f271b4e0c7": {
-        "expire_time": "2025-08-09T11:18:51.518603",
-        "created_at": "2025-08-09T10:25:26.187762",
-        "last_activity": "2025-08-09T10:48:51.519482",
+      "d88e53cf-af67-4916-8a83-b69a271a02a0": {
+        "expire_time": "2025-08-09T13:42:31.982023",
+        "created_at": "2025-08-09T12:52:00.937970",
+        "last_activity": "2025-08-09T13:12:31.998595",
         "ip": "127.0.0.1",
         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
-        "device_type": "desktop",
-        "browser": "chrome"
-      },
-      "3e01a4cb-ebfc-45e0-b5e0-bf5c082d4719": {
-        "expire_time": "2025-08-09T10:56:05.881188",
-        "created_at": "2025-08-09T10:26:01.076536",
-        "last_activity": "2025-08-09T10:26:05.881945",
-        "ip": "127.0.0.1",
-        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
-        "device_type": "desktop",
-        "browser": "chrome"
-      },
-      "7a0fb1ed-a028-4ce6-abdf-47a63e06b5b4": {
-        "expire_time": "2025-08-09T11:19:41.411363",
-        "created_at": "2025-08-09T10:33:46.539832",
-        "last_activity": "2025-08-09T10:49:41.412393",
-        "ip": "127.0.0.1",
-        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) TraeCN/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36",
         "device_type": "desktop",
         "browser": "chrome"
       }

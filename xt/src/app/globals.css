@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+:root{
+  --bg-filter: none;
+}
+
 html, body {
   position: absolute;
   background-color: var(--bg-color);
