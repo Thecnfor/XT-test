@@ -15,9 +15,54 @@ from pydantic import BaseModel
 from schemas.user import User, RegisterRequest, LoginRequest
 from services.database_service import add_user, verify_user, get_user
 from services.session_service import SessionService
-from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES, SESSION_FILE
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES, SESSION_FILE, ENCRYPTION_KEY
+import base64
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
 # 初始化会话服务
 session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
+
+# 解密密码
+def decrypt_password(encrypted_password: str) -> str:
+    """解密前端加密的密码
+
+    Args:
+        encrypted_password: 前端加密后的密码字符串
+
+    Returns:
+        解密后的原始密码
+    """
+    try:
+        # 直接使用CryptoJS兼容的方式解密
+        # 注意：这里需要确保ENCRYPTION_KEY与前端完全一致
+        key = ENCRYPTION_KEY.encode('utf-8')
+        # CryptoJS默认使用CBC模式和PKCS7填充
+        # 解析CryptoJS生成的base64编码字符串
+        encrypted_data = base64.b64decode(encrypted_password)
+        # 提取salt (前8字节是'Salted__', 接下来8字节是salt)
+        if len(encrypted_data) < 16 or not encrypted_data.startswith(b'Salted__'):
+            raise ValueError("无效的加密数据格式")
+        salt = encrypted_data[8:16]
+        ciphertext = encrypted_data[16:]
+
+        # 使用PBKDF2生成密钥和IV (与CryptoJS一致)
+        from Crypto.Protocol.KDF import PBKDF2
+        # CryptoJS默认使用1次迭代
+        key_iv = PBKDF2(key, salt, dkLen=32+16, count=1)
+        key = key_iv[:32]  # AES-256需要32字节密钥
+        iv = key_iv[32:]   # 16字节IV
+
+        # 解密
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        decrypted = unpad(cipher.decrypt(ciphertext), AES.block_size)
+        return decrypted.decode('utf-8')
+    except Exception as e:
+        print(f"密码解密失败: {e}")
+        # 在生产环境中应该抛出异常
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"密码解密失败: {str(e)}"
+        )
 
 # 验证输入是否安全
 def is_safe_input(input_str: str) -> bool:
@@ -124,7 +169,9 @@ async def register(user: RegisterRequest):
 
     # 转义输入，防止XSS攻击
     username = html.escape(user.username)
-    password = html.escape(user.password)
+    # 解密密码
+    encrypted_password = html.escape(user.password)
+    password = decrypt_password(encrypted_password)
 
     if add_user(username, password):
         return {"message": "注册成功", "username": username}
@@ -186,7 +233,9 @@ async def login(login_request: LoginRequest, request: Request):
 
     # 转义输入，防止XSS攻击
     username = html.escape(login_request.username)
-    password = html.escape(login_request.password)
+    # 解密密码
+    encrypted_password = html.escape(login_request.password)
+    password = decrypt_password(encrypted_password)
 
     if not verify_user(username, password):
         raise HTTPException(

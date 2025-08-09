@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import bcrypt from 'bcrypt';
 
-// 定义用户数据结构
-interface User {
-  username: string;
-  password: string;
-}
+import { NextRequest, NextResponse } from 'next/server';
 
 // 定义注册请求的数据结构
 interface RegisterRequest {
   username: string;
   password: string;
 }
+
+// 导入加密库
+import CryptoJS from 'crypto-js';
+
+// 加密密钥 - 必须与前端和后端保持一致
+const ENCRYPTION_KEY = 'your-encryption-key-here'; // 生产环境中应使用环境变量
+
+// 加密函数
+const encryptPassword = (password: string): string => {
+  return CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString();
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,34 +33,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 获取配置文件路径
-    const configPath = path.join(process.cwd(), 'src', 'lib', 'config.json');
-
-    // 读取配置文件
-    const configData = fs.readFileSync(configPath, 'utf8');
-    const config = JSON.parse(configData);
-
-    // 检查用户是否已存在
-    const userExists = config.users.some((user: User) => user.username === username);
-    if (userExists) {
-      return NextResponse.json(
-        { error: '用户名已存在' },
-        { status: 400 }
-      );
-    }
-
     // 加密密码
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const encryptedPassword = encryptPassword(password);
 
-    // 添加新用户
-    config.users.push({
-      username,
-      password: hashedPassword,
+    // 转发请求到后端API
+    const response = await fetch('http://localhost:8000/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username,
+        password: encryptedPassword,
+      }),
     });
 
-    // 保存更新后的配置
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data.error || '注册失败' },
+        { status: response.status }
+      );
+    }
 
     // 返回成功响应
     return NextResponse.json({

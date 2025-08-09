@@ -37,8 +37,14 @@ class SessionService:
                         self.active_sessions[username] = {'sessions': {}}
                         for session_id, session in user_data['sessions'].items():
                             try:
-                                session['expire_time'] = datetime.fromisoformat(session['expire_time'])
-                                session['created_at'] = datetime.fromisoformat(session['created_at'])
+                                # 确保expire_time和created_at是datetime对象
+                                if isinstance(session['expire_time'], str):
+                                    session['expire_time'] = datetime.fromisoformat(session['expire_time'])
+                                if isinstance(session['created_at'], str):
+                                    session['created_at'] = datetime.fromisoformat(session['created_at'])
+                                # 处理last_activity字段
+                                if 'last_activity' in session and isinstance(session['last_activity'], str):
+                                    session['last_activity'] = datetime.fromisoformat(session['last_activity'])
                                 self.active_sessions[username]['sessions'][session_id] = session
                             except (ValueError, KeyError) as e:
                                 logger.warning(f"用户 {username} 的无效会话数据 {session_id}: {e}")

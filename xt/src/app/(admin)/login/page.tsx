@@ -2,6 +2,11 @@
 import { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/layout/Providers';
+import CryptoJS from 'crypto-js';
+
+// 加密密钥 - 实际应用中应从安全存储中获取
+const ENCRYPTION_KEY = 'your-encryption-key-here'; // 生产环境中应使用环境变量
+
 
 // 过滤特殊字符的函数
 const sanitizeInput = (input: string): string => {
@@ -24,6 +29,55 @@ const isValidInput = (input: string): boolean => {
   return !dangerousPatterns.some(pattern => pattern.test(input));
 };
 
+// 检查密码强度
+const checkPasswordStrength = (password: string): { strength: 'weak' | 'medium' | 'strong'; message: string } => {
+  // 至少8位，包含字母和数字
+  if (password.length < 8) {
+    return { strength: 'weak', message: '密码长度至少为8位' };
+  }
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    return { strength: 'weak', message: '密码必须包含字母和数字' };
+  }
+  // 包含特殊字符
+  if (/[^A-Za-z0-9]/.test(password)) {
+    return { strength: 'strong', message: '密码强度良好' };
+  }
+  return { strength: 'medium', message: '密码强度中等，可以添加特殊字符提高安全性' };
+};
+
+// 加密函数 - 与后端解密逻辑匹配
+const encryptPassword = (password: string): string => {
+  // 使用CryptoJS的PBKDF2密钥派生
+  const key = CryptoJS.enc.Utf8.parse(ENCRYPTION_KEY);
+  const salt = CryptoJS.lib.WordArray.random(8); // 8字节salt
+  
+  // 使用PBKDF2生成密钥和IV (与后端一致)
+  // 注意：CryptoJS的PBKDF2默认使用1000次迭代，这里需要设置为1次以匹配后端
+  const keyIV = CryptoJS.PBKDF2(key, salt, {
+    keySize: (32 + 16) / 4, // 32字节密钥 + 16字节IV
+    iterations: 1,
+    hasher: CryptoJS.algo.SHA1
+  });
+  
+  // 手动提取密钥和IV（不使用slice或splice方法）
+  const encryptedKey = CryptoJS.lib.WordArray.create(keyIV.words.slice(0, 32 / 4)); // 32字节密钥
+  const iv = CryptoJS.lib.WordArray.create(keyIV.words.slice(32 / 4)); // 16字节IV
+  
+  // 使用CBC模式和PKCS7填充加密
+  const encrypted = CryptoJS.AES.encrypt(password, encryptedKey, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  
+  // 组合salt和密文，格式: 'Salted__' + salt + ciphertext
+  const saltedData = CryptoJS.enc.Utf8.parse('Salted__')
+    .concat(salt)
+    .concat(encrypted.ciphertext);
+  
+  return saltedData.toString(CryptoJS.enc.Base64);
+};
+
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -33,8 +87,31 @@ export default function LoginPage() {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerError, setRegisterError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState<{ strength: 'weak' | 'medium' | 'strong'; message: string } | null>(null);
+  const [registerPasswordStrength, setRegisterPasswordStrength] = useState<{ strength: 'weak' | 'medium' | 'strong'; message: string } | null>(null);
   const router = useRouter();
   const { setAuthToken } = useContext(AuthContext);
+
+  // 密码强度检查处理
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = sanitizeInput(e.target.value);
+    setPassword(value);
+    if (value) {
+      setPasswordStrength(checkPasswordStrength(value));
+    } else {
+      setPasswordStrength(null);
+    }
+  };
+
+  const handleRegisterPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = sanitizeInput(e.target.value);
+    setRegisterPassword(value);
+    if (value) {
+      setRegisterPasswordStrength(checkPasswordStrength(value));
+    } else {
+      setRegisterPasswordStrength(null);
+    }
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +127,9 @@ export default function LoginPage() {
     }
 
     try {
+      // 加密密码
+      const encryptedPassword = encryptPassword(sanitizedPassword);
+
       // 调用后端登录API - 使用JSON格式
       const response = await fetch('http://localhost:8000/auth/token', {
         method: 'POST',
@@ -58,7 +138,7 @@ export default function LoginPage() {
         },
         body: JSON.stringify({
           username: sanitizedUsername,
-          password: sanitizedPassword,
+          password: encryptedPassword,
         }),
       });
 
@@ -92,7 +172,6 @@ export default function LoginPage() {
     // 过滤和验证输入
     const sanitizedUsername = sanitizeInput(registerUsername);
     const sanitizedPassword = sanitizeInput(registerPassword);
-    const sanitizedConfirmPassword = sanitizeInput(registerConfirmPassword);
 
     if (!isValidInput(sanitizedUsername) || !isValidInput(sanitizedPassword)) {
       setRegisterError('输入包含不安全字符，请重新输入');
@@ -100,6 +179,16 @@ export default function LoginPage() {
     }
 
     try {
+      // 检查密码强度
+      const strength = checkPasswordStrength(sanitizedPassword);
+      if (strength.strength === 'weak') {
+        setRegisterError('密码强度不足: ' + strength.message);
+        return;
+      }
+
+      // 加密密码
+      const encryptedPassword = encryptPassword(sanitizedPassword);
+
       // 发送注册请求到后端API
       const response = await fetch('http://localhost:8000/auth/register', {
         method: 'POST',
@@ -108,7 +197,7 @@ export default function LoginPage() {
         },
         body: JSON.stringify({
           username: sanitizedUsername,
-          password: sanitizedPassword,
+          password: encryptedPassword,
         }),
       });
 
@@ -157,13 +246,18 @@ export default function LoginPage() {
                   密码
                 </label>
                 <input
-                  type="password"
-                  id="registerPassword"
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+                    type="password"
+                    id="registerPassword"
+                    value={registerPassword}
+                    onChange={handleRegisterPasswordChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  {registerPasswordStrength && (
+                    <div className={`mt-2 text-sm ${registerPasswordStrength.strength === 'weak' ? 'text-red-600' : registerPasswordStrength.strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {registerPasswordStrength.message}
+                    </div>
+                  )}
               </div>
               <div className="mb-6">
                 <label htmlFor="registerConfirmPassword" className="block mb-2 text-sm font-medium text-gray-700">
@@ -221,13 +315,18 @@ export default function LoginPage() {
                   密码
                 </label>
                 <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  {passwordStrength && (
+                    <div className={`mt-2 text-sm ${passwordStrength.strength === 'weak' ? 'text-red-600' : passwordStrength.strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {passwordStrength.message}
+                    </div>
+                  )}
               </div>
               <button
                 type="submit"

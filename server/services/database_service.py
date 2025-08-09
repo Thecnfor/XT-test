@@ -4,7 +4,7 @@ import sqlite3
 import pymysql
 import bcrypt
 from schemas.user import User
-from config import DATABASE_TYPE, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST_PORT, DATABASE_NAME, DATABASE_MAX_RETRIES
+from config import DATABASE_TYPE, DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST_PORT, DATABASE_NAME, DATABASE_MAX_RETRIES, BCRYPT_WORK_FACTOR
 
 # 数据库文件路径
 DB_FILE = "server/db/users.db"
@@ -73,8 +73,8 @@ def add_user(username: str, password: str) -> bool:
 
     while retry_count < max_retries:
         try:
-            # 加密密码
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            # 加密密码 - 使用配置的工作因子增强安全性
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(BCRYPT_WORK_FACTOR))
 
             # 连接数据库
             conn = get_db_connection()

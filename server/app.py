@@ -55,6 +55,12 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(chat_router)
 
+# 导入数据库初始化函数
+from services.database_service import init_db
+
+# 初始化数据库
+init_db()
+
 # 根路由
 @app.get("/")
 async def root():

@@ -15,7 +15,12 @@ SESSION_CLEANUP_INTERVAL_MINUTES = 1
 # 认证配置
 SECRET_KEY = "your-secret-key-here-change-in-production"
 ALGORITHM = "HS256"
+# bcrypt密码哈希工作因子
+# 工作因子每增加1，哈希计算时间翻倍
+BCRYPT_WORK_FACTOR = 14
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
+# 密码传输加密密钥 - 必须与前端保持一致
+ENCRYPTION_KEY = "your-encryption-key-here"  # 生产环境中应使用环境变量
 SESSION_EXPIRE_MINUTES = 30
 # 会话存储 - 使用JSON文件
 SESSION_FILE = "d:/Xrak/XT-test/server/session.json"
