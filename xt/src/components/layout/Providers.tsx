@@ -136,7 +136,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       if (expiryTime && now > expiryTime) {
         console.log('本地检测到会话已过期，清除会话');
         await clearSession();
-      } else if (error.name === 'AbortError') {
+      } else if (error instanceof Error && error.name === 'AbortError') {
         console.warn('会话检查请求超时');
         // 超时不立即清除会话，避免误判
       } else {

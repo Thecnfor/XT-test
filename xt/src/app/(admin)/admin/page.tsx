@@ -6,14 +6,14 @@ import { AuthContext } from '@/components/layout/Providers'
 
 export default function Admin() {
   const router = useRouter()
-  const { clearSession, isAuthenticated, loading } = useContext(AuthContext)
+  const { clearSession, isAuthenticated } = useContext(AuthContext)
 
   // 检查登录状态，未登录则重定向到登录页
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (!isAuthenticated) {
       router.push('/login?redirect=/admin')
     }
-  }, [isAuthenticated, loading, router])
+  }, [isAuthenticated, router])
 
   // 定义handleLogout函数
   const handleLogout = async () => {
@@ -25,9 +25,9 @@ export default function Admin() {
     }
   }
 
-  // 加载状态显示
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>加载中...</div>
+  // 未登录状态下不渲染内容
+  if (!isAuthenticated) {
+    return null
   }
 
   // 已登录用户显示管理页面
