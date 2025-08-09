@@ -31,7 +31,6 @@ export default function Providers({ children }: { children: ReactNode }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const checkTimerRef = useRef<number | null>(null);
-  const router = useRouter();
   const pathname = usePathname();
 
   // 更新token和会话ID的方法
@@ -67,13 +66,17 @@ export default function Providers({ children }: { children: ReactNode }) {
         console.error('登出请求失败:', error);
       }
     }
-    // 清除Cookie和状态
+    // 清除所有认证相关的Cookie
     deleteCookie('token');
-    deleteCookie('sessionId');
+      deleteCookie('sessionId');
+      deleteCookie('username');
+      deleteCookie('lastSessionCheck');
+      deleteCookie('sessionExpiry');
+    // 清除状态
     setToken(null);
     setSessionId(null);
-    // 导航到主页
-    router.push('/');
+    // 强制刷新页面，确保所有状态都被重置
+    window.location.href = '/';
   }, [sessionId]);
 
   // 检查会话状态的方法

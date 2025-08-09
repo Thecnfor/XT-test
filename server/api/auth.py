@@ -3,6 +3,7 @@ import uuid
 import html
 import re
 import threading
+import json
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 import time
@@ -15,10 +16,24 @@ from pydantic import BaseModel
 from schemas.user import User, RegisterRequest, LoginRequest
 from services.database_service import add_user, verify_user, get_user
 from services.session_service import SessionService
-from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES, SESSION_FILE, ENCRYPTION_KEY
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES, SESSION_FILE, ENCRYPTION_KEY, ADMIN_CONFIG_FILE
 import base64
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
+
+# 读取管理员配置
+def load_admin_config():
+    try:
+        with open(ADMIN_CONFIG_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"读取管理员配置失败: {e}")
+        return {'admin_users': []}
+
+# 检查用户是否为管理员
+def is_admin_user(username: str) -> bool:
+    admin_config = load_admin_config()
+    return username in admin_config.get('admin_users', [])
 # 初始化会话服务
 session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
 
@@ -417,6 +432,27 @@ async def get_device_info(validate_request: ValidateSessionRequest):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="会话不存在或已过期"
         )
+
+# 检查用户是否为管理员
+@router.post("/is_admin", response_model=dict)
+async def check_is_admin(validate_request: ValidateSessionRequest, current_user: User = Depends(get_current_user)):
+    # 验证会话
+    session_id = validate_request.session_id
+    result = session_service.validate_session(session_id)
+    if not result['valid']:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="无效的会话ID或会话已过期"
+        )
+    
+    # 使用会话验证结果中的用户名进行管理员检查
+    username = result['username']
+    admin_status = is_admin_user(username)
+    
+    return {
+        "is_admin": admin_status,
+        "username": username
+    }
 
 # 受保护的路由示例
 @router.get("/users/me", response_model=User)

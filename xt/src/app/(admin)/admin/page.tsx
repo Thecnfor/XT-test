@@ -1,21 +1,36 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { AuthContext } from '@/components/layout/Providers'
 
 export default function Admin() {
   const router = useRouter()
-  const { clearSession } = useContext(AuthContext)
+  const { clearSession, isAuthenticated, loading } = useContext(AuthContext)
 
-  // 直接定义handleLogout函数
+  // 检查登录状态，未登录则重定向到登录页
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login?redirect=/admin')
+    }
+  }, [isAuthenticated, loading, router])
+
+  // 定义handleLogout函数
   const handleLogout = async () => {
-    // 使用clearSession方法清除会话
-    await clearSession()
-    // 重定向到登录页面
-    router.push('/')
+    if (isAuthenticated) {
+      // 只有已登录用户才能执行退出操作
+      await clearSession()
+      // 重定向到登录页面
+      router.push('/login')
+    }
   }
 
+  // 加载状态显示
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>加载中...</div>
+  }
+
+  // 已登录用户显示管理页面
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>管理后台</h1>

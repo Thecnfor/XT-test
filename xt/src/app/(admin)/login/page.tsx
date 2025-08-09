@@ -150,8 +150,13 @@ export default function LoginPage() {
       // 使用setAuthToken方法设置令牌和会话ID
       setAuthToken(data.access_token, data.session_id);
 
-      // 登录成功，重定向到首页
-      router.push('/admin');
+      // 设置用户名cookie
+      document.cookie = `username=${sanitizedUsername}; path=/; max-age=3600`;
+
+      // 登录成功，根据redirect参数决定重定向页面
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get('redirect') || `/admin/${sanitizedUsername}`;
+      router.push(redirectUrl);
     } catch (error) {
       setError('登录失败，请检查用户名和密码');
       console.error('登录请求失败:', error);

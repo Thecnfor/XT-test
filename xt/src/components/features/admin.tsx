@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { AuthContext } from '@/components/layout/Providers';
 import { setNavWidth } from '@/store/NavSwitch';
 import { usePathname } from 'next/navigation';
+import { getCookie } from '@/lib/utils';
 
 export default function AdminButton() {
     const pathname = usePathname();
@@ -41,11 +42,40 @@ export default function AdminButton() {
         return null;
     }
 
+    // 获取当前用户名（从cookie、localStorage或token中）
+    const getCurrentUsername = () => {
+        // 1. 尝试从cookie中获取
+        const usernameFromCookie = getCookie('username');
+        if (usernameFromCookie) {
+            return usernameFromCookie;
+        }
+        
+        // 2. 尝试从localStorage中获取
+        const usernameFromLocalStorage = localStorage.getItem('username');
+        if (usernameFromLocalStorage) {
+            return usernameFromLocalStorage;
+        }
+        
+        // 3. 尝试从token中解析 (假设token在localStorage中)
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                // 简单解析token (实际应用中可能需要更复杂的解析)
+                const decodedToken = JSON.parse(atob(token.split('.')[1]));
+                return decodedToken.username || decodedToken.name || 'unknown';
+            } catch (error) {
+                console.error('Failed to decode token:', error);
+            }
+        }
+        
+        // 所有方法都失败，返回默认值
+        return 'unknown';
+    };
+
     return (
-        <>
-        {authState ? (
+        <>        {authState ? (
             <div className="admin-button">
-                <Link href="/admin" onClick={handleLinkClick}>管理员</Link>
+                <Link href={`/admin/${getCurrentUsername()}`} onClick={handleLinkClick}>管理员</Link>
             </div>
         ) : (
             <div className="admin-button">

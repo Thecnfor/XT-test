@@ -24,6 +24,8 @@ ENCRYPTION_KEY = "your-encryption-key-here"  # 生产环境中应使用环境变
 SESSION_EXPIRE_MINUTES = 30
 # 会话存储 - 使用JSON文件
 SESSION_FILE = "d:/Xrak/XT-test/server/session.json"
+# 管理员配置文件路径
+ADMIN_CONFIG_FILE = "d:/Xrak/XT-test/server/admin.json"
 # 会话不活动超时时间（分钟）
 SESSION_INACTIVITY_TIMEOUT = 15
 
