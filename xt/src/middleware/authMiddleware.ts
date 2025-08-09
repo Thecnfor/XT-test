@@ -1,6 +1,16 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * 添加X-Frame-Options头以防止点击劫持
+ * @param response - 要修改的响应对象
+ * @returns 修改后的响应对象
+ */
+function addXFrameOptionsHeader(response: NextResponse): NextResponse {
+  response.headers.set('X-Frame-Options', 'DENY');
+  return response;
+}
+
 // 定义管理员页面路径
 const ADMIN_PAGE = '/admin';
 // 定义个人后台路径前缀
@@ -19,7 +29,8 @@ export async function authMiddleware(req: NextRequest) {
   const isPublicPath = publicPaths.some(path => req.nextUrl.pathname.startsWith(path));
 
   if (isPublicPath) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    return addXFrameOptionsHeader(response);
   }
 
   // 所有非公共路径都需要认证
@@ -27,7 +38,8 @@ export async function authMiddleware(req: NextRequest) {
     // 未认证，重定向到登录页
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    return addXFrameOptionsHeader(redirectResponse);
   }
 
   // 验证会话有效性
@@ -56,7 +68,8 @@ export async function authMiddleware(req: NextRequest) {
     cookieStore.delete('sessionId');
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    return addXFrameOptionsHeader(redirectResponse);
   }
 
   // 检查是否是管理员页面或个人后台页面
@@ -121,9 +134,10 @@ export async function authMiddleware(req: NextRequest) {
   if (isAdminPage) {
     const adminStatus = await isAdmin();
     if (!adminStatus) {
-      // 不是管理员，重定向到首页
-      return NextResponse.redirect(new URL('/', req.url));
-    }
+        // 不是管理员，重定向到首页
+        const redirectResponse = NextResponse.redirect(new URL('/', req.url));
+        return addXFrameOptionsHeader(redirectResponse);
+      }
   }
 
   // 个人后台页面访问控制
@@ -132,13 +146,15 @@ export async function authMiddleware(req: NextRequest) {
     const adminStatus = await isAdmin();
 
     // 只有当前用户或管理员可以访问
-    if (!currentUser || (currentUser.username !== userId && !adminStatus)) {
-      return NextResponse.redirect(new URL('/', req.url));
-    }
+      if (!currentUser || (currentUser.username !== userId && !adminStatus)) {
+        const redirectResponse = NextResponse.redirect(new URL('/', req.url));
+        return addXFrameOptionsHeader(redirectResponse);
+      }
   }
 
   // 认证通过，继续请求
-  return NextResponse.next();
+  const response = NextResponse.next();
+  return addXFrameOptionsHeader(response);
 
   // 删除了重复的无效代码
   // 这些代码在函数返回后定义，永远不会被执行
