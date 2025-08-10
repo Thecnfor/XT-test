@@ -2,7 +2,6 @@
 
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 
 interface AdminContentProps {
   isAdminVerified: boolean;

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import {
   checkPasswordStrength,
@@ -13,9 +13,7 @@ import {
   sanitizeInput,
   isValidInput,
   type PasswordStrengthResult,
-  type SecurePasswordResponse,
-  type PasswordResetResponse,
-  type PasswordChangeResponse
+  type SecurePasswordResponse
 } from '@/lib/password-utils';
 
 // 样式组件
@@ -273,17 +271,7 @@ const PasswordManager: React.FC<PasswordManagerProps> = ({ token }) => {
     }
   };
 
-  // 复制密码到剪贴板
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setMessage({ type: 'success', text: '密码已复制到剪贴板' });
-      clearMessage();
-    } catch (error) {
-      setMessage({ type: 'error', text: '复制失败' });
-      clearMessage();
-    }
-  };
+  // 复制密码到剪贴板 - 移除未使用的函数
 
   // 请求密码重置
   const handleRequestReset = async () => {
@@ -329,8 +317,9 @@ const PasswordManager: React.FC<PasswordManagerProps> = ({ token }) => {
       setResetToken('');
       setResetUsername('');
       setNewPassword('');
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || '密码重置失败' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '密码重置失败';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
       clearMessage();
@@ -363,8 +352,9 @@ const PasswordManager: React.FC<PasswordManagerProps> = ({ token }) => {
       setMessage({ type: 'success', text: result.message });
       setCurrentPassword('');
       setChangeNewPassword('');
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || '密码更改失败' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '密码更改失败';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
       clearMessage();

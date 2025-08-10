@@ -5,13 +5,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 
 interface WebSocketMessage {
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface UseWebSocketReturn {
   isConnected: boolean;
   isAdminVerified: boolean;
-  sendMessage: (message: any) => void;
+  sendMessage: (message: WebSocketMessage) => void;
   disconnect: () => void;
   reconnect: () => void;
 }
@@ -53,6 +53,34 @@ export function useWebSocket({
     onDisconnectRef.current = onDisconnect;
     onMessageRef.current = onMessage;
   }, [onConnect, onDisconnect, onMessage]);
+
+  const sendMessage = useCallback((message: WebSocketMessage) => {
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket未连接，无法发送消息');
+    }
+  }, []);
+
+  const stopPing = useCallback(() => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+      pingIntervalRef.current = null;
+    }
+  }, []);
+
+  const startPing = useCallback(() => {
+    stopPing(); // 清理之前的定时器
+    
+    pingIntervalRef.current = setInterval(() => {
+      if (socketRef.current?.readyState === WebSocket.OPEN) {
+        sendMessage({
+          type: 'ping',
+          timestamp: Date.now()
+        });
+      }
+    }, 30000); // 每30秒发送一次心跳
+  }, [sendMessage, stopPing]);
 
   const connect = useCallback(() => {
     // 如果已经有连接或正在连接，先断开
@@ -159,7 +187,7 @@ export function useWebSocket({
     } catch (error) {
       console.error('创建WebSocket连接失败:', error);
     }
-  }, [sessionId, token]); // 移除回调函数依赖，避免重新创建连接
+  }, [sessionId, token, startPing, stopPing]);
 
   const disconnect = useCallback(() => {
     isConnectingRef.current = false;
@@ -176,35 +204,9 @@ export function useWebSocket({
     setIsConnected(false);
     setIsAdminVerified(false);
     reconnectAttemptsRef.current = 0;
-  }, []);
+  }, [stopPing]);
 
-  const sendMessage = useCallback((message: any) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(message));
-    } else {
-      console.warn('WebSocket未连接，无法发送消息');
-    }
-  }, []);
 
-  const startPing = useCallback(() => {
-    stopPing(); // 清理之前的定时器
-    
-    pingIntervalRef.current = setInterval(() => {
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        sendMessage({
-          type: 'ping',
-          timestamp: Date.now()
-        });
-      }
-    }, 30000); // 每30秒发送一次心跳
-  }, [sendMessage]);
-
-  const stopPing = useCallback(() => {
-    if (pingIntervalRef.current) {
-      clearInterval(pingIntervalRef.current);
-      pingIntervalRef.current = null;
-    }
-  }, []);
 
   const reconnect = useCallback(() => {
     disconnect();
@@ -222,7 +224,7 @@ export function useWebSocket({
     return () => {
       disconnect();
     };
-  }, [autoConnect, sessionId, token]); // 移除connect和disconnect依赖，避免无限重连
+  }, [autoConnect, sessionId, token, connect, disconnect]); // 添加必要的依赖
 
   return {
     isConnected,

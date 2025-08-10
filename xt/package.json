@@ -14,7 +14,9 @@
     "bundle:check": "npm run build && node scripts/analyze-bundle.js",
     "optimize": "npm run lint && npm run build && npm run analyze",
     "perf:monitor": "node scripts/performance-monitor.js",
-    "perf:report": "npm run build && npm run perf:monitor"
+    "perf:report": "npm run build && npm run perf:monitor",
+    "content:watch": "node scripts/content-manager.js",
+    "content:sync": "node scripts/content-manager.js --sync-only"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
@@ -32,6 +34,7 @@
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "cobe": "^0.6.4",
+    "critters": "^0.0.23",
     "crypto-js": "^4.2.0",
     "gsap": "^3.13.0",
     "jsonwebtoken": "^9.0.2",
@@ -62,6 +65,7 @@
     "@types/react-dom": "^19",
     "@types/styled-components": "^5.1.34",
     "autoprefixer": "^10.4.21",
+    "chokidar": "^4.0.1",
     "clsx": "^2.1.1",
     "cross-env": "^10.0.0",
     "eslint": "^9",

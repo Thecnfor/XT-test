@@ -158,7 +158,7 @@ const PasswordManagerPage: React.FC = () => {
           </BackButton>
         </Header>
         
-        <PasswordManager token={token} />
+        <PasswordManager token={token || undefined} />
         
         <div style={{ textAlign: 'center', marginTop: '30px' }}>
           <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }}>

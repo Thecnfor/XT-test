@@ -296,7 +296,7 @@ export default function Providers({ children }: { children: ReactNode }) {
         checkTimerRef.current = null;
       }
     };
-  }, []);
+  }, [checkAdminStatus]);
 
   // 当token变化时，更新认证状态
   useEffect(() => {

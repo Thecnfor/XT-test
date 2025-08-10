@@ -54,11 +54,19 @@ const navSlice = createSlice({
   },
 });
 
+// 定义状态类型
+interface NavState {
+  nav: {
+    screenWidth: number;
+    navWidth: string;
+  };
+}
+
 // 初始化bg-filter
 export const initializeBgFilter = createAsyncThunk(
   'nav/initializeBgFilter',
-  (_, { getState, dispatch }) => {
-    const { nav } = getState() as any;
+  (_, { getState }) => {
+    const { nav } = getState() as NavState;
     setBgFilter(nav.screenWidth, nav.navWidth);
   }
 );
