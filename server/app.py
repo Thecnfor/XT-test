@@ -20,7 +20,7 @@ server_running = True
 server_thread = None
 
 # 清理任务
-async def cleanup():
+def cleanup():
     # 在这里添加清理逻辑，如关闭数据库连接等
     print("正在进行清理工作...")
     # 清除所有会话
@@ -37,7 +37,7 @@ def handle_shutdown(sig, frame):
     print(f"接收到信号 {sig}，正在关闭服务器...")
     server_running = False
     # 运行清理任务
-    asyncio.run(cleanup())
+    cleanup()
     sys.exit(0)
 
 # 注册信号处理

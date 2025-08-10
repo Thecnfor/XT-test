@@ -30,8 +30,8 @@ const SwitchChat = () => {
     dispatch(setNavWidth(newWidth));
   };
 
-  // 只在根目录显示
-  if (pathname !== '/') {
+  // 在根目录和 /admin 路径下显示
+  if (pathname !== '/' && !pathname.startsWith('/admin')) {
     return null;
   }
 

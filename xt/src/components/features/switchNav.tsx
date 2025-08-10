@@ -5,11 +5,13 @@ import clsx from 'clsx';
 import Link from "next/link";
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '@/store';
-import { setClass, setNavWidth } from '@/store/NavSwitch';
+import { setClass, setNavWidth, closeNavOnRouteChange } from '@/store/NavSwitch';
 import navLinks from '@/lib/links';
 import { usePathname } from 'next/navigation';
 import { NavMore } from './NavMore';
 import AdminButton from './admin';
+import HistoryLinks from '@/app/(user)/Chat/HistoryLink';
+import AdminLinks from '@/app/(admin)/admin/Links';
 
 // 链接已统一管理到 @/hooks/docs/links.ts 文件中
 export default function SwitchNav() {
@@ -27,7 +29,9 @@ export default function SwitchNav() {
     if (currentLink) {
       setActiveLink(currentLink[0]);
     }
-  }, [pathname]);
+    // 路由变化时在小屏幕下关闭导航
+    dispatch(closeNavOnRouteChange());
+  }, [pathname, dispatch]);
   
   useEffect(() => {
     // 当 navWidth 变化时，更新 CSS 变量和 isActive 状态
@@ -40,6 +44,13 @@ export default function SwitchNav() {
     setIsActive(!isActive);
     dispatch(setClass(isActive ? 'highlight' : ''));
     dispatch(setNavWidth(newWidth));
+  };
+
+  const handleAdminToggle = () => {
+    const newWidth = isActive ? '0px' : '300px';
+    dispatch(setNavWidth(newWidth));
+    setIsActive(!isActive);
+    dispatch(setClass(isActive ? 'highlight' : ''));
   };
 
   return (
@@ -95,7 +106,32 @@ export default function SwitchNav() {
               <NavMore />
             </div>
             <div className='nav-chat'>
-              <ul>123</ul>
+              <ul>
+                {pathname === '/' && Object.entries(HistoryLinks).filter(([, link]) => link.show !== false).map(([name, link]) => (
+                  <li key={name} className={clsx({ 'active-link': !link.hasSubLinks && name === activeLink })}>
+                    <div className="flex items-center justify-between w-full">
+                      <Link href={link.path} className="block w-full h-full" onClick={handleAdminToggle}>
+                        {name}
+                      </Link>
+                      {link.hasSubLinks && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
+                      )}
+                    </div>
+                  </li>
+                ))}
+                {pathname.startsWith('/admin') && Object.entries(AdminLinks).filter(([, link]) => link.show !== false).map(([name, link]) => (
+                  <li key={name} className={clsx({ 'active-link': !link.hasSubLinks && name === activeLink })}>
+                    <div className="flex items-center justify-between w-full">
+                      <Link href={link.path} className="block w-full h-full" onClick={handleAdminToggle}>
+                        {name}
+                      </Link>
+                      {link.hasSubLinks && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0" strokeDasharray="50%" strokeDashoffset="50%"></path><path d="M13 18l6 -6"></path><path d="M13 6l6 6"></path></svg>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
               <AdminButton />
             </div>
           </div>

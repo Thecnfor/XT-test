@@ -234,7 +234,7 @@ const LoginPage = () => {
     <StyledWrapper>
       <div className="container">
         <div className="card">
-          <h2 className="login">{isRegistering ? '注册' : '登录'}</h2>
+          <div className="login">{isRegistering ? '创建账户' : '欢迎回来'}</div>
           {isRegistering ? (
             <div className="form-container">
               {registerError && (
@@ -358,18 +358,20 @@ const StyledWrapper = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 64px;
+    margin-bottom: 144px;
     margin-right: var(--nav-width);
   }
 
   .login {
     color: var(--text-color);
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 8px;
+    font-weight: 600;
+    font-size: 28px;
     display: block;
     font-weight: bold;
     font-size: x-large;
-    margin-bottom: 20px;
+    margin-bottom: 35px;
   }
 
   .card {
@@ -378,56 +380,61 @@ const StyledWrapper = styled.div`
     align-items: center;
     width: 100%;
     flex-direction: column;
-    gap: 20px;
+    gap: 5px;
     background: var(--bg-color);
     padding: 30px;
   }
 
   .inputBox {
     position: relative;
+    display: flex;
+    align-items: center;
     width: 100%;
+    height: 3.25rem;
     margin-bottom: 15px;
-    border-bottom: 2px solid var(--text-color);
-    border-left: 2px solid var(--text-color);
-    border-bottom-left-radius: 8px;
+    border: 2px solid rgba(var(--rgb-color), 0.5);
+    border-radius: 50px;
   }
 
   .inputBox input {
     width: 100%;
-    padding: 10px;
+    padding: 0 1.25rem;
     outline: none;
     border: none;
-    color: var(--text-color);
+    color: rgba(var(--rgb-color), 0.5);
     font-size: 1em;
     background: transparent;
     transition: 0.1s;
   }
 
   .inputBox span {
-    margin-top: 5px;
+    margin-top: 6px;
     position: absolute;
     left: 0;
     transform: translateY(-4px);
+    background: var(--bg-color);
+    border-radius: 20px;
     margin-left: 10px;
     padding: 10px;
     pointer-events: none;
-    font-size: 12px;
-    color: var(--text-color);
+    font-size: 16px;
+    color: rgba(var(--rgb-color), 0.5);
     text-transform: uppercase;
     transition: 0.5s;
     letter-spacing: 3px;
-    border-radius: 8px;
   }
 
   .inputBox input:valid~span,
   .inputBox input:focus~span {
-    transform: translateX(148px) translateY(-15px);
-    padding: 3px 9px;
-    font-size: 0.9em;
+    transform: translateX(12px) translateY(-28px);
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: 0.8em;
     letter-spacing: 1px;
-    background: var(--text-color);
-    color: var(--bg-color);
-    border: 1px solid var(--text-color);
+    background: var(--bg-color);
+    color: var(--text-color);
   }
 
   .inputBox input:valid,
@@ -472,17 +479,17 @@ const StyledWrapper = styled.div`
   }
 
   .enter {
-    height: 45px;
-    width: 120px;
-    border-radius: 5px;
-    cursor: pointer;
-    color: var(--bg-color);
+    width: 100%;
+    height: 3.25rem;
     background-color: var(--text-color);
+    color: var(--bg-color);
+    border-radius: 50px;
+    border: 2px solid var(--text-color);
+    cursor: pointer;
     font-size: 18px;
     transition: 0.5s;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin: 15px auto;
     font-weight: bold;
   }
 

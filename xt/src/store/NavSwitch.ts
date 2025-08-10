@@ -42,6 +42,14 @@ const navSlice = createSlice({
       state.navWidth = getNavWidthByScreenSize(state.screenWidth);
       // 设置bg-filter
       setBgFilter(state.screenWidth, state.navWidth);
+    },
+    // 添加路由变化时在小屏幕下关闭导航的reducer
+    closeNavOnRouteChange: (state) => {
+      if (state.screenWidth < 768) {
+        state.navWidth = '0px';
+        // 设置bg-filter
+        setBgFilter(state.screenWidth, '0px');
+      }
     }
   },
 });
@@ -55,5 +63,5 @@ export const initializeBgFilter = createAsyncThunk(
   }
 );
 
-export const { setClass, setNavWidth, updateScreenWidth, setResponsiveNavWidth } = navSlice.actions;
+export const { setClass, setNavWidth, updateScreenWidth, setResponsiveNavWidth, closeNavOnRouteChange } = navSlice.actions;
 export default navSlice.reducer;
