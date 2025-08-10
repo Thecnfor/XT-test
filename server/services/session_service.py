@@ -440,6 +440,29 @@ class SessionService:
         self._save_sessions()
         logger.info("已清除所有会话")
 
+    def get_session(self, session_id: str) -> Optional[Dict]:
+        """根据会话ID获取会话信息
+
+        参数:
+            session_id: 会话ID
+
+        返回:
+            会话信息字典，如果会话不存在则返回None
+        """
+        self._cleanup_expired_sessions()
+        
+        # 查找会话
+        for username, user_data in self.active_sessions.items():
+            if 'sessions' in user_data and session_id in user_data['sessions']:
+                session = user_data['sessions'][session_id].copy()
+                session['username'] = username
+                session['session_id'] = session_id
+                logger.debug(f"获取会话 {session_id} 的信息")
+                return session
+        
+        logger.warning(f"尝试获取不存在的会话: {session_id}")
+        return None
+
     def get_session_device_type(self, session_id: str) -> Dict:
         """根据会话ID获取设备类型信息
 

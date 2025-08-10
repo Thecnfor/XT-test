@@ -7,3 +7,6 @@ bcrypt
 python-dotenv
 python-jose[cryptography]
 pymysql
+websockets
+python-socketio
+fastapi-socketio

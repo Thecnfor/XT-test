@@ -8,6 +8,7 @@ import threading
 from api.auth import router as auth_router
 from api.chat import router as chat_router
 from api.log import router as log_router
+from api.websocket import router as websocket_router
 from config import SERVER_PORT, UVICORN_WORKERS
 from middleware.logging_middleware import LoggingMiddleware
 
@@ -46,7 +47,12 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 # 添加CORS中间件，允许前端访问
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 在生产环境中应限制为特定域名
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "ws://localhost:3000",
+        "ws://127.0.0.1:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,6 +62,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(log_router)
+app.include_router(websocket_router)
 
 # 导入数据库初始化函数
 from services.database_service import init_db
@@ -72,27 +79,37 @@ print("日志中间件已添加")
 async def root():
     return {"message": "Welcome to the backend API!"}
 
-def run_server():
-    """在独立线程中运行Uvicorn服务器"""
-    config = uvicorn.Config(
-        app=app,
-        host="0.0.0.0",
-        port=SERVER_PORT,
-        workers=UVICORN_WORKERS,
-        reload=False
-    )
-    server = uvicorn.Server(config)
-    server.run()
+# 调试路由：列出所有路由
+@app.get("/debug/routes")
+async def list_routes():
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods) if hasattr(route, 'methods') else [],
+                "name": getattr(route, 'name', 'Unknown')
+            })
+        elif hasattr(route, 'path'):
+            routes.append({
+                "path": route.path,
+                "type": "WebSocket" if "websocket" in str(type(route)).lower() else "Other",
+                "name": getattr(route, 'name', 'Unknown')
+            })
+    return {"routes": routes}
 
 if __name__ == "__main__":
-    print(f"启动服务器，监听端口 {SERVER_PORT}，使用 {UVICORN_WORKERS} 个工作线程...")
-    # 在独立线程中启动服务器
-    server_thread = threading.Thread(target=run_server, daemon=True)
-    server_thread.start()
-
-    # 主线程等待退出信号
+    print(f"启动服务器，监听端口 {SERVER_PORT}...")
+    print("WebSocket服务已启用")
+    
     try:
-        while server_running:
-            threading.Event().wait(1)  # 等待1秒
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=SERVER_PORT,
+            workers=1,  # WebSocket需要单worker模式
+            reload=False,
+            log_level="info"
+        )
     except KeyboardInterrupt:
         handle_shutdown(signal.SIGINT, None)

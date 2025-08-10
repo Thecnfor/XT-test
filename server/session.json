@@ -1,25 +1,45 @@
 {
   "123": {
     "sessions": {
-      "7894dd41-07bb-4280-8b6e-9d240a5fd29e": {
-        "expire_time": "2025-08-10T04:28:17.777136",
-        "created_at": "2025-08-10T02:25:24.131148",
-        "last_activity": "2025-08-10T03:58:17.777736",
+      "4e5536fd-3d2e-4b9c-95d3-dd05703442cf": {
+        "expire_time": "2025-08-10T05:07:43.999839",
+        "created_at": "2025-08-10T04:24:02.621690",
+        "last_activity": "2025-08-10T04:37:44.001517",
         "ip": "127.0.0.1",
-        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         "device_type": "desktop",
         "browser": "chrome",
-        "login_time": "2025-08-10T02:25:24.131109"
+        "login_time": "2025-08-10T04:24:02.621623"
       },
-      "d91ea01d-d457-420d-b2d1-bb2b6c1869bc": {
-        "expire_time": "2025-08-10T04:26:57.519956",
-        "created_at": "2025-08-10T03:27:21.382005",
-        "last_activity": "2025-08-10T03:56:57.520564",
+      "238362c8-05b0-41d3-9c26-61034d4c7b54": {
+        "expire_time": "2025-08-10T05:24:11.228759",
+        "created_at": "2025-08-10T04:43:42.779838",
+        "last_activity": "2025-08-10T04:54:11.229630",
+        "ip": "127.0.0.1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36",
+        "device_type": "desktop",
+        "browser": "chrome",
+        "login_time": "2025-08-10T04:43:42.779792"
+      },
+      "12e46ead-cb14-46a3-9e71-20197601edb3": {
+        "expire_time": "2025-08-10T05:25:22.191665",
+        "created_at": "2025-08-10T04:46:21.720043",
+        "last_activity": "2025-08-10T04:55:22.192424",
+        "ip": "127.0.0.1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "device_type": "desktop",
+        "browser": "chrome",
+        "login_time": "2025-08-10T04:46:21.720008"
+      },
+      "0a2ee8f0-cd93-493e-a662-82b88d41504e": {
+        "expire_time": "2025-08-10T05:26:47.129547",
+        "created_at": "2025-08-10T04:55:31.692435",
+        "last_activity": "2025-08-10T04:56:47.130308",
         "ip": "127.0.0.1",
         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
         "device_type": "desktop",
         "browser": "chrome",
-        "login_time": "2025-08-10T03:27:21.381712"
+        "login_time": "2025-08-10T04:55:31.692405"
       }
     }
   }

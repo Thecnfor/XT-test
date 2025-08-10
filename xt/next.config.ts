@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
       fullUrl: true,
     },
   },
+  // 添加WebSocket代理配置
+  async rewrites() {
+    return [
+      {
+        source: '/api/ws/:path*',
+        destination: 'http://localhost:8000/ws/:path*',
+      },
+    ];
+  },
   async headers() {
     const isDev = process.env.NODE_ENV !== 'production';
     
@@ -31,7 +40,7 @@ const nextConfig: NextConfig = {
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
     "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data:; " +
-    `connect-src 'self' ${backendApi}; ` +
+    `connect-src 'self' ${backendApi} ws://localhost:8000 ws://127.0.0.1:8000 ws://localhost:3000; ` +
     "frame-src 'none'; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +
@@ -43,7 +52,7 @@ const nextConfig: NextConfig = {
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
     "style-src 'self' 'unsafe-inline'; " +
     "img-src 'self' data:; " +
-    `connect-src 'self' ${backendApi}; ` +
+    `connect-src 'self' ${backendApi} ws://localhost:8000 ws://127.0.0.1:8000; ` +
     "frame-src 'none'; " +
     "object-src 'none'; " +
     "base-uri 'self'; " +

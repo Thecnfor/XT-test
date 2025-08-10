@@ -44,7 +44,11 @@ export default async function Protected() {
         {isAdminVerified ? (
           <div className='super-admin'>
             <h1>超级管理员</h1>
-            <AdminContent isAdminVerified={isAdminVerified} />
+            <AdminContent 
+              isAdminVerified={isAdminVerified} 
+              sessionId={sessionId || ''}
+              token={token || ''}
+            />
         </div>
       ) : (
         <div className='none-admin'>
