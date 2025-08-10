@@ -9,7 +9,8 @@ from api.auth import router as auth_router
 from api.chat import router as chat_router
 from api.log import router as log_router
 from api.websocket import router as websocket_router
-from config import SERVER_PORT, UVICORN_WORKERS
+from api.cache import router as cache_router
+from config import SERVER_PORT, UVICORN_WORKERS, USE_REDIS_CACHE, REDIS_URL
 from middleware.logging_middleware import LoggingMiddleware
 
 # 创建FastAPI应用
@@ -23,12 +24,12 @@ server_thread = None
 def cleanup():
     # 在这里添加清理逻辑，如关闭数据库连接等
     print("正在进行清理工作...")
-    # 清除所有会话
+    # 关闭会话服务
     from services.session_service import SessionService
     from config import SESSION_FILE, SESSION_EXPIRE_MINUTES
     session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
-    session_service.clear_all_sessions()
-    print("已清除所有会话")
+    session_service.shutdown()  # 使用优化后的shutdown方法
+    print("会话服务已关闭")
     print("清理完成，应用已退出。")
 
 # 信号处理函数
@@ -63,12 +64,37 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(log_router)
 app.include_router(websocket_router)
+app.include_router(cache_router)
 
-# 导入数据库初始化函数
-from services.database_service import init_db
+# 导入数据库和缓存初始化函数
+from services.database_service import init_database
+from services.cache_service import init_cache_service, close_cache_service
 
-# 初始化数据库
-init_db()
+# 应用启动事件
+@app.on_event("startup")
+async def startup_event():
+    """应用启动时的初始化任务"""
+    print("正在初始化数据库...")
+    await init_database()
+    print("数据库初始化完成")
+    
+    print("正在初始化缓存服务...")
+    await init_cache_service(use_redis=USE_REDIS_CACHE, redis_url=REDIS_URL)
+    print("缓存服务初始化完成")
+
+# 应用关闭事件
+@app.on_event("shutdown")
+async def shutdown_event():
+    """应用关闭时的清理任务"""
+    print("正在关闭缓存服务...")
+    await close_cache_service()
+    print("缓存服务已关闭")
+    
+    print("正在关闭数据库连接...")
+    from services.database_service import get_connection_pool
+    pool = get_connection_pool()
+    await pool.close_all()
+    print("数据库连接已关闭")
 
 # 添加日志中间件
 app.add_middleware(LoggingMiddleware)

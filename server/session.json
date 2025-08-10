@@ -1,29 +1,15 @@
 {
-  "testuser": {
+  "123": {
     "sessions": {
-      "96050d45-48e6-4811-a226-3ecd3523b835": {
-        "expire_time": "2025-08-10T09:13:58.224142",
-        "created_at": "2025-08-10T08:43:58.224152",
-        "last_activity": "2025-08-10T08:43:58.224094",
+      "8d9d58f0-101d-4e76-82d0-a1ae8dd19d94": {
+        "expire_time": "2025-08-10T11:54:35.929043",
+        "created_at": "2025-08-10T11:24:35.544275",
+        "last_activity": "2025-08-10T11:24:35.929359",
         "ip": "127.0.0.1",
-        "user_agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-GB) WindowsPowerShell/5.1.26100.4768",
-        "device_type": "desktop",
-        "browser": "unknown",
-        "login_time": "2025-08-10T08:43:58.224100"
-      }
-    }
-  },
-  "324": {
-    "sessions": {
-      "e6487bdf-d882-4a97-b258-6e35ff3e178d": {
-        "expire_time": "2025-08-10T09:16:44.796855",
-        "created_at": "2025-08-10T08:46:36.712901",
-        "last_activity": "2025-08-10T08:46:44.797702",
-        "ip": "127.0.0.1",
-        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
         "device_type": "desktop",
         "browser": "chrome",
-        "login_time": "2025-08-10T08:46:36.712858"
+        "login_time": "2025-08-10T11:24:35.544233"
       }
     }
   }

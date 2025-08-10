@@ -116,12 +116,6 @@ export default function AdminContent({ isAdminVerified, sessionId, token }: Admi
               <h3>权限控制</h3>
               <p>管理用户权限</p>
             </div>
-            <Link href="/admin/password-manager">
-              <div style={{ cursor: 'pointer', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', margin: '10px 0' }}>
-                <h3>密码管理</h3>
-                <p>密码强度验证、安全密码生成、密码重置等功能</p>
-              </div>
-            </Link>
             <div>
               <h3>日志审计</h3>
               <p>查看系统日志</p>

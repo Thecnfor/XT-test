@@ -40,3 +40,13 @@ DATABASE_MAX_RETRIES = 3
 
 # 数据库类型：mysql 或 sqlite
 DATABASE_TYPE = "sqlite"
+
+# 缓存配置
+# 是否使用Redis缓存（False则使用内存缓存）
+USE_REDIS_CACHE = False
+# Redis连接URL
+REDIS_URL = "redis://localhost:6379"
+# 默认缓存过期时间（秒）
+DEFAULT_CACHE_TTL = 3600
+# 内存缓存最大条目数
+MEMORY_CACHE_MAX_SIZE = 1000

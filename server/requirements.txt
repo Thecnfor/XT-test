@@ -10,3 +10,7 @@ pymysql
 websockets
 python-socketio
 fastapi-socketio
+redis>=4.0.0
+aioredis>=2.0.0
+aiofiles>=0.8.0
+psutil>=5.8.0
