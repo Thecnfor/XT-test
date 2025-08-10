@@ -4,9 +4,13 @@ import html
 import re
 import threading
 import json
+import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 import time
+
+# 配置日志
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -266,9 +270,19 @@ async def login(login_request: LoginRequest, request: Request):
     # 获取客户端信息
     session_attributes = await get_client_info(request)
     
+    # 记录登录时间
+    session_attributes["login_time"] = datetime.utcnow()
+    
     # 创建会话
     session_id = session_service.create_session(username, session_attributes)
     
+    if not session_id:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"已达到最大活跃会话数 {session_service.max_sessions_per_user}，且所有会话都处于活跃状态",
+        )
+    
+    logger.info(f"用户 {username} 登录成功，会话ID: {session_id}")
     return {"access_token": access_token, "token_type": "bearer", "session_id": session_id}
 
 
@@ -285,30 +299,48 @@ async def logout(logout_request: LogoutRequest):
             detail="会话不存在或已过期"
         )
 
-# 验证会话API
+# 验证会话API（带劫持检测）
 @router.post("/validate_session", response_model=dict)
-async def validate_session(validate_request: ValidateSessionRequest):
+async def validate_session(validate_request: ValidateSessionRequest, request: Request):
     session_id = validate_request.session_id
-    # 验证会话并更新最后活动时间
-    result = session_service.validate_session(session_id)
+    
+    # 获取客户端信息
+    client_info = await get_client_info(request)
+    
+    # 验证会话并检测劫持
+    result = session_service.validate_session(session_id, client_info)
+    
     if result['valid']:
         # 更新会话的最后活动时间
         session_service._update_session_activity(session_id)
-        return {
+        
+        response = {
             "valid": True,
             "username": result["username"],
             "expire_time": result["expire_time"].isoformat()
         }
+        
+        # 如果检测到会话劫持
+        if result['hijacked']:
+            response["hijacked"] = True
+            response["message"] = "检测到异常登录，会话可能已被劫持"
+            # 在实际应用中，可能需要自动结束被劫持的会话
+            # session_service.end_session(session_id, reason="hijacked")
+        
+        return response
     else:
-        return {"valid": False}
+        return {"valid": False, "hijacked": False}
 
 # 刷新会话API
 @router.post("/refresh_session", response_model=dict)
-async def refresh_session(validate_request: ValidateSessionRequest):
+async def refresh_session(validate_request: ValidateSessionRequest, request: Request):
     session_id = validate_request.session_id
     
-    # 刷新会话并更新最后活动时间
-    result = session_service.validate_session(session_id)
+    # 获取客户端信息
+    client_info = await get_client_info(request)
+    
+    # 刷新会话并检测劫持
+    result = session_service.validate_session(session_id, client_info)
     if not result['valid']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -318,21 +350,34 @@ async def refresh_session(validate_request: ValidateSessionRequest):
     # 更新会话的最后活动时间
     session_service._update_session_activity(session_id)
     
-    return {
+    response = {
         "success": True,
         "new_expire_time": result['expire_time'].isoformat()
     }
+    
+    # 如果检测到会话劫持
+    if result['hijacked']:
+        response["hijacked"] = True
+        response["message"] = "检测到异常登录，会话可能已被劫持"
+        # 在实际应用中，可能需要自动结束被劫持的会话
+        # session_service.end_session(session_id, reason="hijacked")
+    
+    return response
 
 # 检查会话过期API
 @router.post("/check_session_expiry", response_model=dict)
-async def check_session_expiry(validate_request: ValidateSessionRequest, warning_threshold: int = 5):
+async def check_session_expiry(validate_request: ValidateSessionRequest, request: Request, warning_threshold: int = 5):
     session_id = validate_request.session_id
     
-    result = session_service.validate_session(session_id)
+    # 获取客户端信息
+    client_info = await get_client_info(request)
+    
+    result = session_service.validate_session(session_id, client_info)
     if not result['valid']:
         return {
             "valid": False,
-            "message": "无效的会话ID或会话已过期"
+            "message": "无效的会话ID或会话已过期",
+            "hijacked": False
         }
     
     # 更新会话的最后活动时间
@@ -341,11 +386,20 @@ async def check_session_expiry(validate_request: ValidateSessionRequest, warning
     remaining_time = result['expire_time'] - datetime.utcnow()
     remaining_minutes = remaining_time.total_seconds() / 60
     
-    return {
+    response = {
         "valid": True,
         "remaining_minutes": remaining_minutes,
         "is_about_to_expire": remaining_minutes < warning_threshold
     }
+    
+    # 如果检测到会话劫持
+    if result['hijacked']:
+        response["hijacked"] = True
+        response["message"] = "检测到异常登录，会话可能已被劫持"
+        # 在实际应用中，可能需要自动结束被劫持的会话
+        # session_service.end_session(session_id, reason="hijacked")
+    
+    return response
 
 # 强制退出用户所有会话API
 @router.post("/force_logout", response_model=dict)

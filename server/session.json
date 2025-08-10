@@ -1,1 +1,16 @@
-{}
+{
+  "123": {
+    "sessions": {
+      "f87c1e5d-0436-4973-8db0-cf798de62b73": {
+        "expire_time": "2025-08-10T02:27:00.022468",
+        "created_at": "2025-08-10T01:56:46.758286",
+        "last_activity": "2025-08-10T01:57:00.023090",
+        "ip": "127.0.0.1",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0",
+        "device_type": "desktop",
+        "browser": "chrome",
+        "login_time": "2025-08-10T01:56:46.758243"
+      }
+    }
+  }
+}

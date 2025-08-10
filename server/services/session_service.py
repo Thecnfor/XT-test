@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import logging
+import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
 
@@ -13,6 +14,8 @@ class SessionService:
     def __init__(self, session_file: str, session_expire_minutes: int):
         self.session_file = session_file
         self.session_expire_minutes = session_expire_minutes
+        self.max_sessions_per_user = 5  # 每个用户最大会话数
+        self.inactivity_threshold_minutes = 15  # 非活跃会话阈值(分钟)
         # 新结构: { username: { sessions: { session_id: { ...session_data } } } }
         self.active_sessions: Dict[str, Dict] = {}
         self._initialize_sessions()
@@ -55,37 +58,36 @@ class SessionService:
             logger.info(f"会话文件 {self.session_file} 不存在，将创建新文件")
             self.active_sessions = {}
 
+    def _convert_datetime_to_str(self, data):
+        """递归转换数据中的datetime对象为字符串"""
+        if isinstance(data, datetime):
+            return data.isoformat()
+        elif isinstance(data, dict):
+            result = {}
+            for k, v in data.items():
+                result[k] = self._convert_datetime_to_str(v)
+            return result
+        elif isinstance(data, list):
+            return [self._convert_datetime_to_str(item) for item in data]
+        return data
+
     def _save_sessions(self):
         """将会话数据保存到文件"""
         try:
             # 确保目录存在
             os.makedirs(os.path.dirname(self.session_file), exist_ok=True)
             
-            # 转换datetime对象为字符串
-            sessions_data = {}
-            for username, user_data in self.active_sessions.items():
-                if 'sessions' not in user_data or not user_data['sessions']:
-                    continue
-                sessions_data[username] = {'sessions': {}}
-                for session_id, session in user_data['sessions'].items():
-                    session_data = {
-                        'expire_time': session['expire_time'].isoformat(),
-                        'created_at': session['created_at'].isoformat()
-                    }
-                    # 添加last_activity字段(如果存在)
-                    if 'last_activity' in session:
-                        session_data['last_activity'] = session['last_activity'].isoformat()
-                    # 添加其他会话属性
-                    for key, value in session.items():
-                        if key not in ['expire_time', 'created_at', 'last_activity']:
-                            session_data[key] = value
-                    sessions_data[username]['sessions'][session_id] = session_data
+            # 使用递归方法转换所有datetime对象
+            sessions_data = self._convert_datetime_to_str(self.active_sessions.copy())
             
             with open(self.session_file, 'w') as f:
                 json.dump(sessions_data, f, indent=2)
             logger.debug(f"成功保存 {len(sessions_data)} 个用户的会话到文件")
         except Exception as e:
             logger.error(f"保存会话失败: {e}")
+            # 打印详细错误信息，帮助调试
+            import traceback
+            logger.error(f"保存会话失败详细信息: {traceback.format_exc()}")
 
     def _cleanup_expired_sessions(self):
         """清理过期会话"""
@@ -121,7 +123,79 @@ class SessionService:
             return True
         return False
 
-    def create_session(self, username: str, session_attributes: Dict = None) -> str:
+    def _is_session_active(self, session: Dict) -> bool:
+        """判断会话是否活跃
+
+        参数:
+            session: 会话数据
+
+        返回:
+            是否活跃
+        """
+        if 'last_activity' not in session:
+            # 如果没有活动记录，认为是新会话，是活跃的
+            return True
+        
+        # 计算最后活动时间到现在的分钟数
+        inactivity_minutes = (datetime.utcnow() - session['last_activity']).total_seconds() / 60
+        return inactivity_minutes < self.inactivity_threshold_minutes
+
+    def _get_least_active_session(self, username: str) -> Optional[str]:
+        """获取用户最不活跃的会话ID
+
+        参数:
+            username: 用户名
+
+        返回:
+            最不活跃的会话ID，如果没有则返回None
+        """
+        if username not in self.active_sessions or 'sessions' not in self.active_sessions[username]:
+            return None
+        
+        user_sessions = self.active_sessions[username]['sessions']
+        # 按最后活动时间排序，找出最不活跃的会话
+        sorted_sessions = sorted(
+            user_sessions.items(),
+            key=lambda x: x[1].get('last_activity', x[1]['created_at'])
+        )
+        
+        # 检查是否有非活跃会话
+        for session_id, session in sorted_sessions:
+            if not self._is_session_active(session):
+                return session_id
+        
+        # 如果所有会话都活跃，返回None
+        return None
+
+    def _check_and_cleanup_user_sessions(self, username: str) -> bool:
+        """检查用户会话数，清理非活跃会话
+
+        参数:
+            username: 用户名
+
+        返回:
+            是否允许创建新会话
+        """
+        if username not in self.active_sessions or 'sessions' not in self.active_sessions[username]:
+            return True
+        
+        user_sessions = self.active_sessions[username]['sessions']
+        
+        # 如果会话数小于最大限制，允许创建
+        if len(user_sessions) < self.max_sessions_per_user:
+            return True
+        
+        # 尝试删除最不活跃的会话
+        least_active_session_id = self._get_least_active_session(username)
+        if least_active_session_id:
+            self.end_session(least_active_session_id)
+            return True
+        
+        # 如果所有会话都活跃且达到最大限制，不允许创建
+        logger.warning(f"用户 {username} 已达到最大活跃会话数 {self.max_sessions_per_user}")
+        return False
+
+    def create_session(self, username: str, session_attributes: Dict = None) -> Optional[str]:
         """创建新会话并返回会话ID
 
         参数:
@@ -129,8 +203,12 @@ class SessionService:
             session_attributes: 会话属性字典，包含浏览器指纹、IP、设备信息等
 
         返回:
-            会话ID
+            会话ID，如果不允许创建则返回None
         """
+        # 检查是否允许创建新会话
+        if not self._check_and_cleanup_user_sessions(username):
+            return None
+        
         session_id = str(uuid.uuid4())
         expire_time = datetime.utcnow() + timedelta(minutes=self.session_expire_minutes)
         
@@ -141,7 +219,8 @@ class SessionService:
         # 初始化会话数据
         session_data = {
             "expire_time": expire_time,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
+            "last_activity": datetime.utcnow()  # 记录最后活动时间
         }
         
         # 添加额外的会话属性
@@ -155,8 +234,16 @@ class SessionService:
         logger.info(f"为用户 {username} 创建新会话: {session_id}")
         return session_id
 
-    def end_session(self, session_id: str) -> bool:
-        """结束会话"""
+    def end_session(self, session_id: str, reason: str = None) -> bool:
+        """结束会话
+
+        参数:
+            session_id: 会话ID
+            reason: 结束原因（例如：'hijacked', 'expired', 'user_logout'）
+
+        返回:
+            是否成功结束
+        """
         # 查找会话属于哪个用户
         for username, user_data in self.active_sessions.items():
             if 'sessions' in user_data and session_id in user_data['sessions']:
@@ -168,14 +255,23 @@ class SessionService:
                     del self.active_sessions[username]
                 
                 self._save_sessions()
-                logger.info(f"结束用户 {username} 的会话: {session_id}")
+                reason_str = f"，原因: {reason}" if reason else ""
+                logger.info(f"结束用户 {username} 的会话: {session_id}{reason_str}")
                 return True
         
         logger.warning(f"尝试结束不存在的会话: {session_id}")
         return False
 
-    def validate_session(self, session_id: str) -> Dict:
-        """验证会话有效性并延长有效期"""
+    def validate_session(self, session_id: str, client_info: Dict = None) -> Dict:
+        """验证会话有效性并延长有效期，同时检测会话劫持
+
+        参数:
+            session_id: 会话ID
+            client_info: 客户端信息，包含浏览器指纹、IP、用户代理等
+
+        返回:
+            包含验证结果和劫持检测结果的字典
+        """
         self._cleanup_expired_sessions()
         
         # 查找会话
@@ -184,16 +280,104 @@ class SessionService:
                 session = user_data['sessions'][session_id]
                 # 延长会话有效期
                 session["expire_time"] = datetime.utcnow() + timedelta(minutes=self.session_expire_minutes)
+                
+                # 检测会话劫持
+                hijacked = False
+                if client_info:
+                    hijacked = not self._verify_client_info(session, client_info)
+                    
                 self._save_sessions()
                 logger.debug(f"会话 {session_id} 验证有效，已延长有效期")
                 return {
                     "valid": True,
                     "username": username,
-                    "expire_time": session["expire_time"]
+                    "expire_time": session["expire_time"],
+                    "hijacked": hijacked
                 }
         
         logger.warning(f"无效的会话ID: {session_id}")
-        return {"valid": False}
+        return {"valid": False, "hijacked": False}
+
+    def _verify_client_info(self, session: Dict, client_info: Dict) -> bool:
+        """验证客户端信息是否匹配
+
+        参数:
+            session: 会话数据
+            client_info: 客户端信息
+
+        返回:
+            是否匹配
+        """
+        # 检查IP地址（允许同一网络段内的变化）
+        if 'ip' in session and 'ip' in client_info:
+            session_ip = session['ip']
+            client_ip = client_info['ip']
+            # 简单的IP匹配（实际应用中可能需要更复杂的网络段检查）
+            if session_ip != client_ip:
+                logger.warning(f"会话 {session.get('session_id')} IP不匹配: {session_ip} vs {client_ip}")
+                return False
+        
+        # 检查用户代理（允许小版本变化）
+        if 'user_agent' in session and 'user_agent' in client_info:
+            session_ua = session['user_agent'].lower()
+            client_ua = client_info['user_agent'].lower()
+            # 检查主要浏览器和操作系统信息是否匹配
+            if not (session_ua and client_ua and \
+                   (session_ua in client_ua or client_ua in session_ua)):
+                logger.warning(f"会话 {session.get('session_id')} 用户代理不匹配")
+                return False
+        
+        # 检查设备类型
+        if 'device_type' in session and 'device_type' in client_info:
+            if session['device_type'] != client_info['device_type']:
+                logger.warning(f"会话 {session.get('session_id')} 设备类型不匹配")
+                return False
+        
+        return True
+
+    def detect_session_hijacking(self, session_id: str, client_info: Dict) -> Dict:
+        """检测会话是否被劫持
+
+        参数:
+            session_id: 会话ID
+            client_info: 客户端信息
+
+        返回:
+            包含劫持检测结果和风险评分的字典
+        """
+        # 查找会话
+        for username, user_data in self.active_sessions.items():
+            if 'sessions' in user_data and session_id in user_data['sessions']:
+                session = user_data['sessions'][session_id]
+                
+                # 初始化风险评分
+                risk_score = 0
+                
+                # 验证客户端信息
+                is_client_match = self._verify_client_info(session, client_info)
+                if not is_client_match:
+                    risk_score += 70
+                    
+                # 检查会话活动模式（例如，短时间内异地登录）
+                # 这里可以添加更复杂的检测逻辑
+                
+                # 确定是否被劫持
+                is_hijacked = risk_score >= 70
+                
+                # 记录劫持检测结果
+                if is_hijacked:
+                    logger.warning(f"检测到会话劫持: {session_id}，用户: {username}")
+                    # 在实际应用中，可能需要触发警报或自动结束会话
+                
+                return {
+                    "hijacked": is_hijacked,
+                    "risk_score": risk_score,
+                    "session_id": session_id,
+                    "username": username
+                }
+        
+        logger.warning(f"尝试检测不存在的会话: {session_id}")
+        return {"hijacked": False, "risk_score": 0}
     
     def _update_session_activity(self, session_id: str) -> bool:
         """更新会话的最后活动时间
