@@ -5,8 +5,9 @@ const navLinks = {
     hasSubLinks: true,
     show: false,
     subLinks: {
-      '用户管理': { path: '/admin/users', hasSubLinks: false },
-      '权限设置': { path: '/admin/permissions', hasSubLinks: false },
+      '用户管理': { path: '/admin/[userId]/users', hasSubLinks: false },
+      '权限设置': { path: '/admin/[userId]/permissions', hasSubLinks: false },
+      '系统设置': { path: '/admin/[userId]/Protected', hasSubLinks: false },
     },
   },
 

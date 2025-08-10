@@ -1,13 +1,23 @@
 'use client'
 
 import { redirect, useParams } from 'next/navigation'
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '@/components/layout/Providers'
+import { getCookie } from '@/lib/utils'
 
 export default function UserAdminPage() {
   // 不再需要router对象
   const { userId } = useParams()
   const { clearSession, isAuthenticated } = useContext(AuthContext)
+  const [username, setUsername] = useState('')
+
+  useEffect(() => {
+    // 从cookie获取用户名
+    const cookieUsername = getCookie('username')
+    if (cookieUsername) {
+      setUsername(cookieUsername)
+    }
+  }, [])
 
   // 处理退出登录
   const handleLogout = async () => {
@@ -23,7 +33,7 @@ export default function UserAdminPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>个人后台</h1>
-      <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>欢迎, {userId}</p>
+      <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>欢迎, {username || userId}</p>
       <button
         onClick={handleLogout}
         style={{

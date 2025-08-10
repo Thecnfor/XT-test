@@ -11,10 +11,14 @@ function addXFrameOptionsHeader(response: NextResponse): NextResponse {
   return response;
 }
 
-// 定义管理员页面路径
+// 定义管理员页面路径和模式
 const ADMIN_PAGE = '/admin';
-// 定义个人后台路径前缀
 const USER_ADMIN_PREFIX = '/admin/';
+const ADMIN_ONLY_PATHS = ['/admin/users', '/admin/settings', '/admin/dashboard'];
+
+// 缓存管理员状态，避免频繁请求
+const adminStatusCache = new Map<string, { status: boolean, timestamp: number }>();
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5分钟缓存过期时间
 
 export async function authMiddleware(req: NextRequest) {
   // 从请求头获取token
@@ -106,8 +110,18 @@ export async function authMiddleware(req: NextRequest) {
     }
   };
 
-  // 检查是否为管理员
+  // 检查是否为管理员（带缓存）
   const isAdmin = async () => {
+    // 检查缓存
+    const cacheKey = `${token}:${sessionId}`;
+    const cached = adminStatusCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached && now - cached.timestamp < CACHE_EXPIRY_MS) {
+      console.debug('使用缓存的管理员状态');
+      return cached.status;
+    }
+
     try {
       const response = await fetch('http://localhost:8000/auth/is_admin', {
         method: 'POST',
@@ -119,25 +133,41 @@ export async function authMiddleware(req: NextRequest) {
       });
 
       if (!response.ok) {
+        console.error('检查管理员权限失败，响应状态:', response.status);
+        adminStatusCache.set(cacheKey, { status: false, timestamp: now });
         return false;
       }
 
       const data = await response.json();
+      adminStatusCache.set(cacheKey, { status: data.is_admin, timestamp: now });
       return data.is_admin;
     } catch (error) {
-      console.error('检查管理员权限失败:', error);
+      console.error('检查管理员权限异常:', error);
+      adminStatusCache.set(cacheKey, { status: false, timestamp: now });
       return false;
     }
   };
-
+ 
   // 管理员页面访问控制
   if (isAdminPage) {
     const adminStatus = await isAdmin();
     if (!adminStatus) {
-        // 不是管理员，重定向到首页
-        const redirectResponse = NextResponse.redirect(new URL('/', req.url));
-        return addXFrameOptionsHeader(redirectResponse);
-      }
+      console.warn('非管理员用户尝试访问管理员页面:', req.nextUrl.pathname);
+      // 不是管理员，重定向到首页
+      const redirectResponse = NextResponse.redirect(new URL('/', req.url));
+      return addXFrameOptionsHeader(redirectResponse);
+    }
+  }
+
+  // 特定管理员路径访问控制
+  if (ADMIN_ONLY_PATHS.some(path => req.nextUrl.pathname.startsWith(path))) {
+    const adminStatus = await isAdmin();
+    if (!adminStatus) {
+      console.warn('非管理员用户尝试访问管理员专属路径:', req.nextUrl.pathname);
+      // 不是管理员，重定向到首页
+      const redirectResponse = NextResponse.redirect(new URL('/', req.url));
+      return addXFrameOptionsHeader(redirectResponse);
+    }
   }
 
   // 个人后台页面访问控制

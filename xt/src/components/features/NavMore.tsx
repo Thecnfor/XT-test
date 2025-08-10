@@ -11,6 +11,9 @@ const typedNavLinks: NavLinks = navLinks;
 export function NavMore() {
     const pathname = usePathname();
     const isHomePage = pathname === '/';
+    // Extract userId from pathname (e.g., /admin/123)
+    const userIdMatch = pathname.match(/^\/admin\/(\d+)/);
+    const userId = userIdMatch ? userIdMatch[1] : null;
 
     const navMoreStyle = {
         position: 'absolute',
@@ -44,7 +47,9 @@ export function NavMore() {
                 return (
                     <ul key={name} className={className} style={{ display: displayStyle }}>
                         {link.subLinks && Object.entries(link.subLinks).map(([subName, subLink]) => (
-                            <li key={subName} className={clsx({ 'active-link': pathname === subLink.path })}><Link href={subLink.path}>{subName}</Link></li>
+                            <li key={subName} className={clsx({ 'active-link': pathname === subLink.path })}>
+                                <Link href={userId ? subLink.path.replace('[userId]', userId) : subLink.path}>{subName}</Link>
+                            </li>
                         ))}
                         {Object.keys(link).filter(key => !['path', 'hasSubLinks', 'subLinks', 'show'].includes(key)).map((category) => (
                             <div key={category} className="nav-tag">{category}</div>
@@ -52,7 +57,9 @@ export function NavMore() {
                         {Object.keys(link).filter(key => !['path', 'hasSubLinks', 'subLinks'].includes(key)).map((category) => (
                             <Fragment key={category}>
                                 {link[category] && Object.entries(link[category] as CategoryLinks).map(([subName, subLink]) => (
-                                    <li key={subName} className={clsx({ 'active-link': pathname === subLink.path })}><Link href={subLink.path}>{subName}</Link></li>
+                                    <li key={subName} className={clsx({ 'active-link': pathname === subLink.path })}>
+                                        <Link href={userId ? subLink.path.replace('[userId]', userId) : subLink.path}>{subName}</Link>
+                                    </li>
                                 ))}
                             </Fragment>
                         ))}

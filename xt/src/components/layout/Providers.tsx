@@ -15,23 +15,28 @@ export const AuthContext = createContext<{
   isAuthenticated: boolean;
   token: string | null;
   sessionId: string | null;
+  isAdmin: boolean;
   setAuthToken: (token: string | null, sessionId?: string) => void;
   clearSession: () => void;
   refreshSession: () => Promise<boolean>;
+  checkAdminStatus: () => Promise<boolean>;
 }>({
   isAuthenticated: false,
   token: null,
   sessionId: null,
+  isAdmin: false, // 补充缺失的默认值
   setAuthToken: () => {},
   clearSession: () => {},
-  refreshSession: async () => false
+  refreshSession: async () => false,
+  checkAdminStatus: async () => false // 补充缺失的默认值
 });
-
 export default function Providers({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const checkTimerRef = useRef<number | null>(null);
+  const adminCheckTimerRef = useRef<number | null>(null);
   const pathname = usePathname();
 
   // 更新token和会话ID的方法
@@ -142,6 +147,38 @@ export default function Providers({ children }: { children: ReactNode }) {
     }
   }, [sessionId, clearSession]);
 
+  // 检查管理员状态的方法
+  const checkAdminStatus = useCallback(async () => {
+    if (!sessionId || !token) {
+      setIsAdmin(false);
+      return false;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/auth/is_admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+
+      if (!response.ok) {
+        setIsAdmin(false);
+        return false;
+      }
+
+      const data = await response.json();
+      setIsAdmin(data.is_admin);
+      return data.is_admin;
+    } catch (error) {
+      console.error('检查管理员权限失败:', error);
+      setIsAdmin(false);
+      return false;
+    }
+  }, [sessionId, token]);
+
   // 刷新会话的方法
   const refreshSession = useCallback(async () => {
     if (!sessionId) {
@@ -176,6 +213,30 @@ export default function Providers({ children }: { children: ReactNode }) {
       return false;
     }
   }, [sessionId]);
+
+  // 启动定时检查管理员状态
+  useEffect(() => {
+    if (isAuthenticated) {
+      // 立即检查一次
+      checkAdminStatus();
+      // 然后每30分钟检查一次
+      adminCheckTimerRef.current = window.setInterval(checkAdminStatus, 30 * 60 * 1000);
+
+      return () => {
+        if (adminCheckTimerRef.current) {
+          window.clearInterval(adminCheckTimerRef.current);
+          adminCheckTimerRef.current = null;
+        }
+      };
+    }
+
+    return () => {
+      if (adminCheckTimerRef.current) {
+        window.clearInterval(adminCheckTimerRef.current);
+        adminCheckTimerRef.current = null;
+      }
+    };
+  }, [isAuthenticated, checkAdminStatus]);
 
   // 启动定时检查会话状态
   useEffect(() => {
@@ -219,6 +280,11 @@ export default function Providers({ children }: { children: ReactNode }) {
     setSessionId(storedSessionId);
     setIsAuthenticated(!!storedToken);
 
+    // 如果已认证，检查管理员状态
+    if (storedToken && storedSessionId) {
+      checkAdminStatus();
+    }
+
     // 初始化bg-filter
     store.dispatch(initializeBgFilter());
 
@@ -253,9 +319,11 @@ export default function Providers({ children }: { children: ReactNode }) {
           isAuthenticated,
           token,
           sessionId,
+          isAdmin,
           setAuthToken,
           clearSession,
-          refreshSession
+          refreshSession,
+          checkAdminStatus
         }}>
         {children}
       </AuthContext.Provider>
