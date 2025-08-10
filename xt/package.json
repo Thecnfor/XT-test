@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze": "cross-env ANALYZE=true next build",
+    "analyze:server": "cross-env BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "cross-env BUNDLE_ANALYZE=browser next build",
+    "analyze:full": "node scripts/analyze-bundle.js",
+    "bundle:check": "npm run build && node scripts/analyze-bundle.js",
+    "optimize": "npm run lint && npm run build && npm run analyze",
+    "perf:monitor": "node scripts/performance-monitor.js",
+    "perf:report": "npm run build && npm run perf:monitor"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
@@ -45,6 +53,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@fullhuman/postcss-purgecss": "^7.0.2",
+    "@next/bundle-analyzer": "^15.4.6",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/crypto-js": "^4.2.2",
     "@types/lodash": "^4.17.20",
@@ -54,6 +63,7 @@
     "@types/styled-components": "^5.1.34",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
+    "cross-env": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
     "framer-motion": "^12.23.6",
@@ -63,6 +73,7 @@
     "tailwindcss": "^4.1.11",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5.8.3",
-    "webgpu": "^0.3.0"
+    "webgpu": "^0.3.0",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }

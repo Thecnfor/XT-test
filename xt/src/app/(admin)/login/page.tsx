@@ -2,83 +2,24 @@
 import  { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/layout/Providers';
-import CryptoJS from 'crypto-js';
-import { APP_CONFIG } from '@/lib/config';
+import { 
+  encryptPassword, 
+  checkPasswordStrength, 
+  sanitizeInput, 
+  isValidInput,
+  type PasswordStrengthResult 
+} from '@/lib/password-utils';
 import React from 'react';
 import { getCookie } from '@/lib/utils';
 import { useEffect } from 'react';
 import styled from 'styled-components';
 
 
-// 过滤特殊字符的函数
-const sanitizeInput = (input: string): string => {
-  // 移除所有HTML标签和危险字符
-  return input
-    .replace(/<[^>]*>/g, '') // 移除HTML标签
-    .replace(/[&<>"'`;(){}[\]\/]/g, ''); // 移除特殊字符
-};
+// 输入验证和过滤函数已移至 password-utils.ts
 
-// 验证输入是否安全
-const isValidInput = (input: string): boolean => {
-  // 检查是否包含危险字符或脚本
-  const dangerousPatterns = [
-    /<script.*?>.*?<\/script>/gi,
-    /on[a-zA-Z]+\s*=/, // 事件处理器
-    /javascript:/gi,
-    /data:/gi
-  ];
+// 密码强度检查已移至 password-utils.ts
 
-  return !dangerousPatterns.some(pattern => pattern.test(input));
-};
-
-// 检查密码强度
-const checkPasswordStrength = (password: string): { strength: 'weak' | 'medium' | 'strong'; message: string } => {
-  // 至少8位，包含字母和数字
-  if (password.length < 8) {
-    return { strength: 'weak', message: '密码长度至少为8位' };
-  }
-  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-    return { strength: 'weak', message: '密码必须包含字母和数字' };
-  }
-  // 包含特殊字符
-  if (/[^A-Za-z0-9]/.test(password)) {
-    return { strength: 'strong', message: '密码强度良好' };
-  }
-  return { strength: 'medium', message: '密码强度中等，可以添加特殊字符提高安全性' };
-};
-
-// 加密函数 - 与后端解密逻辑匹配
-const encryptPassword = (password: string): string => {
-  // 使用CryptoJS的PBKDF2密钥派生
-  const key = CryptoJS.enc.Utf8.parse(APP_CONFIG.security.encryptionKey);
-  const salt = CryptoJS.lib.WordArray.random(8); // 8字节salt
-  
-  // 使用PBKDF2生成密钥和IV (与后端一致)
-  // 注意：CryptoJS的PBKDF2默认使用1000次迭代，这里需要设置为1次以匹配后端
-  const keyIV = CryptoJS.PBKDF2(key, salt, {
-    keySize: (32 + 16) / 4, // 32字节密钥 + 16字节IV
-    iterations: 1,
-    hasher: CryptoJS.algo.SHA1
-  });
-  
-  // 手动提取密钥和IV（不使用slice或splice方法）
-  const encryptedKey = CryptoJS.lib.WordArray.create(keyIV.words.slice(0, 32 / 4)); // 32字节密钥
-  const iv = CryptoJS.lib.WordArray.create(keyIV.words.slice(32 / 4)); // 16字节IV
-  
-  // 使用CBC模式和PKCS7填充加密
-  const encrypted = CryptoJS.AES.encrypt(password, encryptedKey, {
-    iv: iv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7
-  });
-  
-  // 组合salt和密文，格式: 'Salted__' + salt + ciphertext
-  const saltedData = CryptoJS.enc.Utf8.parse('Salted__')
-    .concat(salt)
-    .concat(encrypted.ciphertext);
-  
-  return saltedData.toString(CryptoJS.enc.Base64);
-};
+// 密码加密函数已移至 password-utils.ts
 
 // 主登录页面组件
 const LoginPage = () => {
@@ -90,8 +31,8 @@ const LoginPage = () => {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerError, setRegisterError] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState<{ strength: 'weak' | 'medium' | 'strong'; message: string } | null>(null);
-  const [registerPasswordStrength, setRegisterPasswordStrength] = useState<{ strength: 'weak' | 'medium' | 'strong'; message: string } | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrengthResult | null>(null);
+  const [registerPasswordStrength, setRegisterPasswordStrength] = useState<PasswordStrengthResult | null>(null);
   const router = useRouter();
   const { isAuthenticated, setAuthToken } = useContext(AuthContext);
   const usernameFromCookie = getCookie('username');

@@ -1,4 +1,7 @@
 import type { NextConfig } from 'next';
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 // 从环境变量获取后端API地址，默认为localhost:8000
 const backendApi = process.env.BACKEND_API || 'http://localhost:8000';
@@ -13,12 +16,57 @@ const nextConfig: NextConfig = {
   images: {
     domains: [], // 可以添加图片域名白名单
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
   },
   // 生产环境日志配置
   logging: {
     fetches: {
       fullUrl: true,
     },
+  },
+  // 实验性功能
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: [
+      '@radix-ui/react-icons',
+      '@tabler/icons-react',
+      'lucide-react',
+      'lodash',
+    ],
+  },
+  // Webpack配置优化
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // 生产环境优化
+    if (!dev) {
+      // 启用模块连接
+      config.optimization.concatenateModules = true;
+      
+      // 分割chunks
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            enforce: true,
+          },
+        },
+      };
+    }
+    
+    // 添加别名
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    
+    return config;
   },
   // 添加WebSocket代理配置
   async rewrites() {
@@ -92,4 +140,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

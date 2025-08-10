@@ -1,0 +1,118 @@
+{
+  "timestamp": "2025-08-10T08:27:15.220Z",
+  "bundleAnalysis": {
+    "totalPages": 2,
+    "pages": {
+      "/_app": {
+        "files": [
+          {
+            "file": "static/chunks/webpack-2a5a3c97818494bf.js",
+            "size": 3431,
+            "sizeKB": 3
+          },
+          {
+            "file": "static/chunks/common-b9bbc95e6ee03a92.js",
+            "size": 62853,
+            "sizeKB": 61
+          },
+          {
+            "file": "static/chunks/vendors-b392709628ca2341.js",
+            "size": 1201471,
+            "sizeKB": 1173
+          },
+          {
+            "file": "static/chunks/main-5250361e9add93c0.js",
+            "size": 114,
+            "sizeKB": 0
+          },
+          {
+            "file": "static/chunks/pages/_app-676cbdac7fb0fa49.js",
+            "size": 235,
+            "sizeKB": 0
+          }
+        ],
+        "totalSize": 1268104,
+        "totalSizeKB": 1238
+      },
+      "/_error": {
+        "files": [
+          {
+            "file": "static/chunks/webpack-2a5a3c97818494bf.js",
+            "size": 3431,
+            "sizeKB": 3
+          },
+          {
+            "file": "static/chunks/common-b9bbc95e6ee03a92.js",
+            "size": 62853,
+            "sizeKB": 61
+          },
+          {
+            "file": "static/chunks/vendors-b392709628ca2341.js",
+            "size": 1201471,
+            "sizeKB": 1173
+          },
+          {
+            "file": "static/chunks/main-5250361e9add93c0.js",
+            "size": 114,
+            "sizeKB": 0
+          },
+          {
+            "file": "static/chunks/pages/_error-49f29012f1bd32bf.js",
+            "size": 220,
+            "sizeKB": 0
+          }
+        ],
+        "totalSize": 1268089,
+        "totalSizeKB": 1238
+      }
+    },
+    "totalSize": 2536193,
+    "totalSizeKB": 2477,
+    "totalSizeMB": 2.42
+  },
+  "performanceMetrics": {
+    "dependencies": {
+      "total": 32,
+      "dev": 24,
+      "largeDeps": [
+        "gsap",
+        "openai",
+        "socket.io-client",
+        "styled-components",
+        "framer-motion",
+        "lodash",
+        "@radix-ui/react-icons",
+        "@tabler/icons-react",
+        "lucide-react"
+      ]
+    },
+    "buildTime": "2025-08-10T08:25:50.236Z",
+    "nodeModulesSize": 0
+  },
+  "recommendations": [
+    {
+      "category": "Bundle优化",
+      "items": [
+        "检查未使用的依赖包",
+        "实施代码分割和懒加载",
+        "优化第三方库导入方式"
+      ]
+    },
+    {
+      "category": "性能优化",
+      "items": [
+        "启用图片优化",
+        "实施缓存策略",
+        "考虑使用CDN"
+      ]
+    },
+    {
+      "category": "监控建议",
+      "items": [
+        "定期运行性能分析",
+        "监控Core Web Vitals",
+        "设置性能预算"
+      ]
+    }
+  ]
+}

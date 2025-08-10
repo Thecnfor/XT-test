@@ -1,12 +1,14 @@
-import React from "react";
+import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/layout/header";
-import SwitchNav from "@/components/features/switchNav";
 import Providers from '@/components/layout/Providers';
 import LoadingScreen from '@/components/features/LoadingScreen';
-import Footer from "@/components/layout/footer";
 import ResponsiveNavWidthProvider from '@/hooks/ResponsiveNavWidthProvider';
+
+// 懒加载组件
+const SwitchNav = React.lazy(() => import("@/components/features/switchNav"));
+const Footer = React.lazy(() => import("@/components/layout/footer"));
 
 import "./globals.css";
 import "@/styles/harmony.scss";
@@ -43,12 +45,16 @@ export default function RootLayout({
           <ResponsiveNavWidthProvider />
           <Header />
           <main>
-            <SwitchNav />
+            <Suspense fallback={<div className="loading-placeholder">加载导航中...</div>}>
+              <SwitchNav />
+            </Suspense>
             <div className={`mainPage`}>
               <div className="bg-filter"></div>  
               {children}
             </div>
-            <Footer />
+            <Suspense fallback={<div className="loading-placeholder">加载页脚中...</div>}>
+              <Footer />
+            </Suspense>
           </main>
         </Providers>
       </body>

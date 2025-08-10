@@ -59,7 +59,6 @@ manager = ConnectionManager()
 
 @router.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    print(f"WebSocket连接请求: {session_id}")
     logger.info(f"WebSocket连接请求: {session_id}")
     
     # 检查是否已有相同session_id的连接，如果有则先断开
@@ -88,7 +87,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
         while True:
             # 接收客户端消息
             data = await websocket.receive_text()
-            print(f"收到WebSocket消息: {data}")
             logger.info(f"收到WebSocket消息: {data}")
             
             try:
@@ -115,10 +113,8 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
                 )
                 
     except WebSocketDisconnect:
-        print(f"WebSocket连接断开: {session_id}")
         logger.info(f"WebSocket连接断开: {session_id}")
     except Exception as e:
-        print(f"WebSocket错误: {e}")
         logger.error(f"WebSocket错误: {e}")
     finally:
         # 确保在任何情况下都清理连接

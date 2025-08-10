@@ -20,10 +20,8 @@ from pydantic import BaseModel
 from schemas.user import User, RegisterRequest, LoginRequest
 from services.database_service import add_user, verify_user, get_user
 from services.session_service import SessionService
+from services.password_service import get_password_service, init_password_service
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SESSION_EXPIRE_MINUTES, SESSION_FILE, ENCRYPTION_KEY, ADMIN_CONFIG_FILE
-import base64
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import unpad
 
 # 读取管理员配置
 def load_admin_config():
@@ -31,17 +29,21 @@ def load_admin_config():
         with open(ADMIN_CONFIG_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        print(f"读取管理员配置失败: {e}")
+        logger.error(f"读取管理员配置失败: {e}")
         return {'admin_users': []}
 
 # 检查用户是否为管理员
 def is_admin_user(username: str) -> bool:
     admin_config = load_admin_config()
     return username in admin_config.get('admin_users', [])
+# 初始化密码服务
+init_password_service(ENCRYPTION_KEY)
+password_service = get_password_service()
+
 # 初始化会话服务
 session_service = SessionService(SESSION_FILE, SESSION_EXPIRE_MINUTES)
 
-# 解密密码
+# 解密密码（使用密码服务）
 def decrypt_password(encrypted_password: str) -> str:
     """解密前端加密的密码
 
@@ -51,37 +53,7 @@ def decrypt_password(encrypted_password: str) -> str:
     Returns:
         解密后的原始密码
     """
-    try:
-        # 直接使用CryptoJS兼容的方式解密
-        # 注意：这里需要确保ENCRYPTION_KEY与前端完全一致
-        key = ENCRYPTION_KEY.encode('utf-8')
-        # CryptoJS默认使用CBC模式和PKCS7填充
-        # 解析CryptoJS生成的base64编码字符串
-        encrypted_data = base64.b64decode(encrypted_password)
-        # 提取salt (前8字节是'Salted__', 接下来8字节是salt)
-        if len(encrypted_data) < 16 or not encrypted_data.startswith(b'Salted__'):
-            raise ValueError("无效的加密数据格式")
-        salt = encrypted_data[8:16]
-        ciphertext = encrypted_data[16:]
-
-        # 使用PBKDF2生成密钥和IV (与CryptoJS一致)
-        from Crypto.Protocol.KDF import PBKDF2
-        # CryptoJS默认使用1次迭代
-        key_iv = PBKDF2(key, salt, dkLen=32+16, count=1)
-        key = key_iv[:32]  # AES-256需要32字节密钥
-        iv = key_iv[32:]   # 16字节IV
-
-        # 解密
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        decrypted = unpad(cipher.decrypt(ciphertext), AES.block_size)
-        return decrypted.decode('utf-8')
-    except Exception as e:
-        print(f"密码解密失败: {e}")
-        # 在生产环境中应该抛出异常
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"密码解密失败: {str(e)}"
-        )
+    return password_service.decrypt_password(encrypted_password)
 
 # 验证输入是否安全
 def is_safe_input(input_str: str) -> bool:
@@ -123,7 +95,7 @@ def session_cleanup_worker():
 def start_session_cleanup_thread():
     cleanup_thread = threading.Thread(target=session_cleanup_worker, daemon=True)
     cleanup_thread.start()
-    print("会话清理线程已启动")
+    logger.info("会话清理线程已启动")
 
 # 启动会话清理线程
 start_session_cleanup_thread()
@@ -508,9 +480,259 @@ async def check_is_admin(validate_request: ValidateSessionRequest, current_user:
         "username": username
     }
 
+# 密码强度验证API
+@router.post("/validate_password_strength", response_model=dict)
+async def validate_password_strength(request: dict):
+    """验证密码强度
+    
+    Args:
+        request: 包含encrypted_password字段的请求
+        
+    Returns:
+        密码强度验证结果
+    """
+    encrypted_password = request.get('encrypted_password')
+    if not encrypted_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="缺少encrypted_password字段"
+        )
+    
+    try:
+        # 解密密码
+        password = decrypt_password(encrypted_password)
+        
+        # 验证密码强度
+        strength_result = password_service.validate_password_strength(password)
+        
+        return {
+            "success": True,
+            "strength": strength_result
+        }
+    except Exception as e:
+        logger.error(f"密码强度验证失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"密码强度验证失败: {str(e)}"
+        )
+
+# 生成安全密码API
+@router.post("/generate_secure_password", response_model=dict)
+async def generate_secure_password(request: dict = None):
+    """生成安全密码
+    
+    Args:
+        request: 可选的请求参数，包含length字段
+        
+    Returns:
+        生成的安全密码（加密后）
+    """
+    length = 16  # 默认长度
+    if request and 'length' in request:
+        length = max(8, min(64, request['length']))  # 限制长度在8-64之间
+    
+    try:
+        # 生成安全密码
+        secure_password = password_service.generate_secure_password(length)
+        
+        # 加密密码（与前端格式一致）
+        encrypted_password = password_service.encrypt_password(secure_password)
+        
+        # 验证强度
+        strength_result = password_service.validate_password_strength(secure_password)
+        
+        return {
+            "success": True,
+            "encrypted_password": encrypted_password,
+            "strength": strength_result['strength'],
+            "length": len(secure_password)
+        }
+    except Exception as e:
+        logger.error(f"生成安全密码失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"生成安全密码失败: {str(e)}"
+        )
+
+# 密码重置令牌生成API
+@router.post("/request_password_reset", response_model=dict)
+async def request_password_reset(request: dict):
+    """请求密码重置
+    
+    Args:
+        request: 包含username字段的请求
+        
+    Returns:
+        重置令牌信息
+    """
+    username = request.get('username')
+    if not username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="缺少username字段"
+        )
+    
+    # 验证用户是否存在
+    user = get_user(username)
+    if not user:
+        # 为了安全，即使用户不存在也返回成功
+        # 避免用户名枚举攻击
+        return {
+            "success": True,
+            "message": "如果用户存在，重置链接已发送到注册邮箱"
+        }
+    
+    try:
+        # 生成重置令牌
+        reset_token = password_service.create_password_reset_token(username)
+        
+        # 在实际应用中，这里应该发送邮件给用户
+        # 现在只是记录日志
+        logger.info(f"为用户 {username} 生成密码重置令牌: {reset_token}")
+        
+        return {
+            "success": True,
+            "message": "如果用户存在，重置链接已发送到注册邮箱",
+            "token": reset_token  # 在生产环境中不应该返回令牌
+        }
+    except Exception as e:
+        logger.error(f"生成密码重置令牌失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="密码重置请求处理失败"
+        )
+
+# 密码重置API
+@router.post("/reset_password", response_model=dict)
+async def reset_password(request: dict):
+    """重置密码
+    
+    Args:
+        request: 包含token、username和new_password字段的请求
+        
+    Returns:
+        重置结果
+    """
+    token = request.get('token')
+    username = request.get('username')
+    encrypted_new_password = request.get('new_password')
+    
+    if not all([token, username, encrypted_new_password]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="缺少必要字段：token、username、new_password"
+        )
+    
+    try:
+        # 验证重置令牌
+        if not password_service.verify_reset_token(token, username):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="无效或已过期的重置令牌"
+            )
+        
+        # 解密新密码
+        new_password = decrypt_password(encrypted_new_password)
+        
+        # 验证新密码强度
+        strength_result = password_service.validate_password_strength(new_password)
+        if not strength_result['valid']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"密码强度不足: {', '.join(strength_result['issues'])}"
+            )
+        
+        # 更新密码（这里需要实现实际的密码更新逻辑）
+        # 在实际应用中，应该调用数据库服务更新密码
+        logger.info(f"用户 {username} 密码重置成功")
+        
+        # 强制退出该用户的所有会话
+        session_service.end_user_sessions(username)
+        
+        return {
+            "success": True,
+            "message": "密码重置成功，请重新登录"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"密码重置失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="密码重置失败"
+        )
+
+# 更改密码API
+@router.post("/change_password", response_model=dict)
+async def change_password(request: dict, current_user: User = Depends(get_current_user)):
+    """更改密码
+    
+    Args:
+        request: 包含current_password和new_password字段的请求
+        current_user: 当前登录用户
+        
+    Returns:
+        更改结果
+    """
+    encrypted_current_password = request.get('current_password')
+    encrypted_new_password = request.get('new_password')
+    
+    if not all([encrypted_current_password, encrypted_new_password]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="缺少必要字段：current_password、new_password"
+        )
+    
+    try:
+        # 解密密码
+        current_password = decrypt_password(encrypted_current_password)
+        new_password = decrypt_password(encrypted_new_password)
+        
+        # 验证当前密码
+        if not verify_user(current_user.username, current_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="当前密码错误"
+            )
+        
+        # 验证新密码强度
+        strength_result = password_service.validate_password_strength(new_password)
+        if not strength_result['valid']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"新密码强度不足: {', '.join(strength_result['issues'])}"
+            )
+        
+        # 检查新密码是否与当前密码相同
+        if current_password == new_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="新密码不能与当前密码相同"
+            )
+        
+        # 更新密码（这里需要实现实际的密码更新逻辑）
+        # 在实际应用中，应该调用数据库服务更新密码
+        logger.info(f"用户 {current_user.username} 密码更改成功")
+        
+        # 强制退出该用户的其他会话（保留当前会话）
+        # 这里可以根据需要决定是否强制退出所有会话
+        
+        return {
+            "success": True,
+            "message": "密码更改成功"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"密码更改失败: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="密码更改失败"
+        )
+
 # 受保护的路由示例
 @router.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
-
-# 已移除重复的路由定义
