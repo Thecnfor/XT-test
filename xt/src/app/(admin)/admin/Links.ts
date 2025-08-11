@@ -16,7 +16,7 @@ const getCurrentUsername = () => {
     }
   }
   
-  return 'unknown';
+  return 'null';
 };
 
 // 统一管理导航链接

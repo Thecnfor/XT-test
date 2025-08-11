@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
               }
               controller.enqueue(value);
             }
-          } catch (unused_error) {
-            // 忽略错误但保持变量定义
+          } catch {
+            // 忽略错误
           } finally {
             controller.close();
           }

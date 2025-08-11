@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import navLinks from '@/lib/links';
+import { NavLink } from '@/types/navLinks';
 
 const CheckNav = () => {
   const [isChecked, setIsChecked] = useState(false);
@@ -24,7 +25,7 @@ const CheckNav = () => {
     <StyledShowMore $isVisible={isChecked}>
       <StyledNav>
         <StyledUl key={isChecked ? 'checked' : 'unchecked'}>
-            {Object.entries(navLinks).filter(([ , link]) => link.show !== false).map(([name, link], index) => (
+            {(Object.entries(navLinks) as [string, NavLink][]).filter(([ , link]) => link.show !== false).map(([name, link], index) => (
               isChecked ? (
                 <StyledLiIn key={`${name}-${isChecked}`} $index={index}>
                   <StyledLinkContainer>

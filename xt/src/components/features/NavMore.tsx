@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { Fragment } from 'react';
-import navLinks from '@/lib/links';
+import navLinks, { NavItem } from '@/lib/links';
 import clsx from 'clsx';
-import NavLinks, { CategoryLinks } from '@/types/navLinks';
+import { CategoryLinks } from '@/types/navLinks';
 
-// 为navLinks添加类型注解
-const typedNavLinks: NavLinks = navLinks;
+// 将NavItem转换为兼容的格式
+const typedNavLinks: Record<string, NavItem> = navLinks;
 
 export function NavMore() {
     const pathname = usePathname();
@@ -29,10 +29,10 @@ export function NavMore() {
                 <span>首页</span>
             </Link>
             {Object.entries(typedNavLinks).filter(([name, link]) => {
-                // 管理员分类在访问/admin/[userId]时应该显示
-                if (name === '管理员' && pathname.match(/^\/admin\/\d+$/)) {
+                // 管理员分类在访问/admin/**时应该显示
+                if (name === '管理员' && pathname.startsWith('/admin/')) {
                     return true;
-                }
+                } 
                 // 其他分类仍然根据show属性决定
                 return link.show !== false;
             }).map(([name, link]) => {
@@ -40,7 +40,7 @@ export function NavMore() {
                 // 检查当前路径是否与链接路径匹配，包括子路径和动态路由
                 const isActive = pathname === link.path || 
                                   pathname.startsWith(`${link.path}/`) || 
-                                  (link.path === '/admin' && pathname.match(/^\/admin\/\d+$/));
+                                  (link.path === '/admin' && pathname.startsWith('/admin/'));
                 // 只显示与当前路径匹配的导航
                 const displayStyle = isActive ? 'block' : 'none';
                 

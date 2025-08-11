@@ -57,11 +57,7 @@ const LoadingScreen = () => {
       return true;
     }
     
-    // 生产环境：使用 sessionStorage 确保只在当前会话中显示一次
-    if (window.sessionStorage) {
-      return !sessionStorage.getItem('hasShownLoading');
-    }
-    
+    // 生产环境：总是显示加载画面，但通过其他逻辑控制显示时长
     return true;
   });
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -73,10 +69,7 @@ const LoadingScreen = () => {
       return;
     }
 
-    // 只在生产环境中标记为已显示
-    if (typeof window !== 'undefined' && window.sessionStorage && process.env.NODE_ENV === 'production') {
-      sessionStorage.setItem('hasShownLoading', 'true');
-    }
+    // 移除sessionStorage逻辑，确保每次都能正常加载
 
     // 确保至少显示2秒
     const minDisplayTime = APP_CONFIG.minLoadingDisplayTime;
@@ -84,11 +77,20 @@ const LoadingScreen = () => {
 
     // 检查关键CSS是否已加载
     const checkCriticalStyles = () => {
+      // 检查document.readyState
+      if (document.readyState === 'complete') {
+        return true;
+      }
+      
       // 检查body是否有来自globals.css的类名，增加备选检查方式
       const hasAntialiased = document.body.classList.contains('antialiased');
       const hasBgColor = document.body.style.backgroundColor !== '';
       
-      return hasAntialiased || hasBgColor;
+      // 检查是否有CSS变量被设置
+      const computedStyle = window.getComputedStyle(document.body);
+      const hasCSSVars = computedStyle.getPropertyValue('--bg-color') !== '';
+      
+      return hasAntialiased || hasBgColor || hasCSSVars;
     };
 
     // 使用requestAnimationFrame进行高效检查
@@ -122,11 +124,20 @@ const LoadingScreen = () => {
       cancelAnimationFrame(animationFrameId);
     };
 
+    // 添加最大等待时间后备机制（10秒后强制显示）
+    const maxWaitTime = 10000;
+    const forceShowTimeout = setTimeout(() => {
+      console.log('达到最大等待时间，强制显示页面');
+      startFadeOut();
+      cancelAnimationFrame(animationFrameId);
+    }, maxWaitTime);
+
     window.addEventListener('load', handleLoad);
 
     return () => {
       window.removeEventListener('load', handleLoad);
       cancelAnimationFrame(animationFrameId);
+      clearTimeout(forceShowTimeout);
     };
   }, [isLoading]);
 

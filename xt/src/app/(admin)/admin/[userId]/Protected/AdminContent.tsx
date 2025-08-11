@@ -2,6 +2,7 @@
 
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useEffect, useState } from 'react';
+import NavLinksManager from '@/components/admin/NavLinksManager';
 
 interface AdminContentProps {
   isAdminVerified: boolean;
@@ -103,22 +104,7 @@ export default function AdminContent({ isAdminVerified, sessionId, token }: Admi
           </div>
           
           <div>
-            <div>
-              <h3>用户管理</h3>
-              <p>管理系统用户账户</p>
-            </div>
-            <div>
-              <h3>系统设置</h3>
-              <p>配置系统参数</p>
-            </div>
-            <div>
-              <h3>权限控制</h3>
-              <p>管理用户权限</p>
-            </div>
-            <div>
-              <h3>日志审计</h3>
-              <p>查看系统日志</p>
-            </div>
+            <NavLinksManager />
           </div>
           
           {/* WebSocket实时功能演示 */}

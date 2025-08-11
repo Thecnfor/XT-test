@@ -144,8 +144,12 @@
     width: calc(100svw - var(--nav-width));
     min-height: calc(100svh - 64px);
     padding-top: 64px;
+    overflow: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    div{
+        overflow-y: scroll;
+    }
 }

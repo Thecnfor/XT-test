@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { useAppSelector } from '@/store';
 import { setClass, setNavWidth, closeNavOnRouteChange } from '@/store/NavSwitch';
 import navLinks from '@/lib/links';
+import { type NavLink } from '@/types/navLinks';
 import { usePathname } from 'next/navigation';
 import { NavMore } from './NavMore';
 import AdminButton from './admin';
@@ -25,7 +26,7 @@ export default function SwitchNav() {
 
   useEffect(() => {
     // 找到当前路径对应的链接名称
-    const currentLink = Object.entries(navLinks).find(([ , link]) => link.path === pathname);
+    const currentLink = (Object.entries(navLinks) as [string, NavLink][]).find(([, link]) => link.path === pathname);
     if (currentLink) {
       setActiveLink(currentLink[0]);
     }
@@ -90,7 +91,7 @@ export default function SwitchNav() {
                   <li className='chat-history'>
                     <Link href='/chat'>对话历史</Link>
                   </li>
-                  {Object.entries(navLinks).filter(([ , link]) => link.show !== false).map(([name, link]) => (
+                  {(Object.entries(navLinks) as [string, NavLink][]).filter(([ , link]) => link.show !== false).map(([name, link]) => (
                     <li key={name} className={clsx({ 'active-link': !link.hasSubLinks && name === activeLink })}>
                       <div className="flex items-center justify-between w-full">
                         <Link href={link.path} className="block w-full h-full">

@@ -111,7 +111,7 @@ const LoginPage = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const redirectUrl = urlParams.get('redirect') || `/admin/${sanitizedUsername}`;
       router.push(redirectUrl);
-    } catch (error) {
+    } catch {
       setError('登录失败，请检查用户名和密码');
     }
   };
@@ -166,7 +166,7 @@ const LoginPage = () => {
 
       setIsRegistering(false);
       setError('注册成功，请登录');
-    } catch (error) {
+    } catch {
       setRegisterError('注册失败，请稍后再试');
     }
   };

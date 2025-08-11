@@ -248,7 +248,7 @@ const PasswordManager: React.FC<PasswordManagerProps> = ({ token }) => {
       const result = await validatePasswordStrengthAPI(testPassword);
       setPasswordStrength(result.strength);
       setMessage({ type: 'success', text: '密码强度验证完成' });
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: '密码强度验证失败' });
     } finally {
       setLoading(false);
@@ -263,7 +263,7 @@ const PasswordManager: React.FC<PasswordManagerProps> = ({ token }) => {
       const result = await generateSecurePassword(passwordLength);
       setGeneratedPassword(result);
       setMessage({ type: 'success', text: '安全密码生成成功' });
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: '生成安全密码失败' });
     } finally {
       setLoading(false);
@@ -288,7 +288,7 @@ const PasswordManager: React.FC<PasswordManagerProps> = ({ token }) => {
       if (result.token) {
         setResetToken(result.token);
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: '密码重置请求失败' });
     } finally {
       setLoading(false);
